@@ -100,16 +100,7 @@ export default function Hero() {
             />
           </div>
           
-          {/* Designer Badge overlay */}
-          <div className="absolute -bottom-4 -left-4 glass-premium px-5 py-4 rounded-2xl flex items-center gap-3 shadow-lg">
-            <div className="w-10 h-10 rounded-full bg-gold flex items-center justify-center text-white font-serif text-sm font-semibold">
-              H
-            </div>
-            <div>
-              <div className="text-[10px] text-muted font-bold uppercase tracking-widest">Designed By</div>
-              <div className="text-xs font-semibold text-charcoal">Asha Rao, Lead Architect</div>
-            </div>
-          </div>
+
         </motion.div>
         
       </div>
