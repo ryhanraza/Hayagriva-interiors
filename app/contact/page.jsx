@@ -1,101 +1,106 @@
 'use client'
+
 import ContactForm from '../../components/ContactForm'
 import { motion } from 'framer-motion'
-import { MapPin, Phone, Mail, Clock, Instagram, Send } from 'lucide-react'
+import { MapPin, Phone, Mail, Clock } from 'lucide-react'
 
 export default function Contact() {
   return (
-    <div className="py-24 bg-warmcream min-h-screen">
-      <div className="max-w-6xl mx-auto px-6">
+    <div className="bg-warmcream text-charcoal min-h-screen py-32 px-6">
+      <div className="max-w-6xl mx-auto">
 
         {/* Page Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-semibold tracking-widest text-gold uppercase">Get In Touch</span>
-          <h1 className="text-4xl sm:text-5xl font-serif text-charcoal mt-2 mb-4">Start Your Design Journey</h1>
-          <p className="text-muted text-sm sm:text-base">
-            Book a complimentary design consultation at our studio or schedule a video call with our lead designers.
+        <div className="text-center max-w-2xl mx-auto mb-20">
+          <span className="text-[10px] font-bold tracking-widest text-gold uppercase">Get In Touch</span>
+          <h1 className="text-4xl sm:text-5xl font-serif text-charcoal mt-3 mb-5 font-bold leading-tight">Start Your Design Journey</h1>
+          <p className="text-charcoal/60 text-xs sm:text-sm leading-relaxed">
+            Book a complimentary design consultation at our studio or schedule a call with our lead designers.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch relative z-10">
 
-          {/* Info Card Column */}
+          {/* Info Card Column (Premium Dark Contrast Card) */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="lg:col-span-5 bg-charcoal text-white rounded-3xl p-8 sm:p-10 flex flex-col justify-between shadow-xl"
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5 bg-charcoal border border-white/5 text-white rounded-3xl p-8 sm:p-10 flex flex-col justify-between shadow-2xl relative"
           >
-            <div>
-              <h3 className="text-2xl font-serif text-gold mb-6">Contact Information</h3>
-              <p className="text-sm text-gray-400 leading-relaxed mb-8">
+            {/* Subtle background glow */}
+            <div className="absolute top-0 left-0 w-32 h-32 bg-gold/5 rounded-full blur-[80px] pointer-events-none" />
+            
+            <div className="relative z-10">
+              <h3 className="text-2xl font-bold font-serif text-gold mb-6 tracking-wide">Contact Information</h3>
+              <p className="text-xs sm:text-sm text-beige/60 leading-relaxed mb-10">
                 Drop by our studio for a cup of coffee and browse our extensive catalog of material samples, woods, and upholstery fabrics.
               </p>
 
-              <div className="space-y-6">
+              <div className="space-y-7">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-white/5 rounded-xl text-gold mt-1">
-                    <MapPin size={18} />
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-gold mt-1 shadow-md">
+                    <MapPin size={18} className="stroke-gold" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold uppercase tracking-wider text-gray-400">Our Studio</h5>
-                    <p className="text-sm mt-1">second floor, DR DEEN COMPLEX, 51-15-1/6, opposite to Tech Mahindra, Satyam Junction, KRANTHI NAGAR, Maddilapalem, Visakhapatnam, Andhra Pradesh 530013</p>
+                    <h5 className="text-[10px] font-bold uppercase tracking-widest text-beige/40">Our Studio</h5>
+                    <p className="text-xs sm:text-sm mt-1.5 leading-relaxed text-beige/85">
+                      second floor, DR DEEN COMPLEX, 51-15-1/6, opposite to Tech Mahindra, Satyam Junction, KRANTHI NAGAR, Maddilapalem, Visakhapatnam, Andhra Pradesh 530013
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-white/5 rounded-xl text-gold mt-1">
-                    <Phone size={18} />
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-gold mt-1 shadow-md">
+                    <Phone size={18} className="stroke-gold" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold uppercase tracking-wider text-gray-400">Phone Call</h5>
-                    <p className="text-sm mt-1">+91 95731 78887</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Mon-Sat, 9:30 AM - 7:00 PM</p>
+                    <h5 className="text-[10px] font-bold uppercase tracking-widest text-beige/40">Phone Call</h5>
+                    <p className="text-xs sm:text-sm mt-1.5 font-bold text-beige">+91 95731 78887</p>
+                    <p className="text-[10px] text-beige/45 mt-1 font-mono">Mon-Sat, 9:30 AM - 7:00 PM</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-white/5 rounded-xl text-gold mt-1">
-                    <Mail size={18} />
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-gold mt-1 shadow-md">
+                    <Mail size={18} className="stroke-gold" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold uppercase tracking-wider text-gray-400">Email Address</h5>
-                    <a href="mailto:interiorsbyhayagriva@gmail.com" className="text-sm mt-1 hover:text-gold transition-colors block">interiorsbyhayagriva@gmail.com</a>
+                    <h5 className="text-[10px] font-bold uppercase tracking-widest text-beige/40">Email Address</h5>
+                    <a href="mailto:interiorsbyhayagriva@gmail.com" className="text-xs sm:text-sm mt-1.5 hover:text-gold transition-colors block font-semibold text-beige">
+                      interiorsbyhayagriva@gmail.com
+                    </a>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-white/5 rounded-xl text-gold mt-1">
-                    <Clock size={18} />
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-gold mt-1 shadow-md">
+                    <Clock size={18} className="stroke-gold" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold uppercase tracking-wider text-gray-400">Consultation Hours</h5>
-                    <p className="text-sm mt-1">By appointment only on Sundays.</p>
+                    <h5 className="text-[10px] font-bold uppercase tracking-widest text-beige/40">Consultation Hours</h5>
+                    <p className="text-xs sm:text-sm mt-1.5 text-beige/85">By appointment only on Sundays.</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Premium Stylized Vector Map representation */}
-            <div className="mt-10 pt-6 border-t border-white/10">
-              <div className="relative w-full h-36 bg-white/5 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center p-4">
-                {/* Custom SVG styling that represents a clean abstract street grid */}
-                <svg className="absolute inset-0 w-full h-full opacity-25" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <line x1="0" y1="20" x2="100" y2="20" stroke="#FAF8F5" strokeWidth="0.8" />
-                  <line x1="0" y1="50" x2="100" y2="50" stroke="#FAF8F5" strokeWidth="0.8" />
-                  <line x1="0" y1="80" x2="100" y2="80" stroke="#FAF8F5" strokeWidth="0.8" />
-                  <line x1="30" y1="0" x2="30" y2="100" stroke="#FAF8F5" strokeWidth="0.8" />
-                  <line x1="70" y1="0" x2="70" y2="100" stroke="#FAF8F5" strokeWidth="0.8" />
-                  {/* Diagonal boulevard */}
-                  <line x1="0" y1="100" x2="100" y2="0" stroke="#FAF8F5" strokeWidth="1.5" />
-                  {/* Highlight Pin circle */}
-                  <circle cx="65" cy="35" r="5" fill="#C4A265" />
-                  <circle cx="65" cy="35" r="10" fill="none" stroke="#C4A265" strokeWidth="1" strokeDasharray="2" />
+            <div className="mt-12 pt-6 border-t border-white/5 relative z-10">
+              <div className="relative w-full h-40 bg-black-luxury/60 border border-white/5 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center p-4">
+                <svg className="absolute inset-0 w-full h-full opacity-35" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <line x1="0" y1="20" x2="100" y2="20" stroke="#FAF8F5" strokeOpacity="0.08" strokeWidth="0.8" />
+                  <line x1="0" y1="50" x2="100" y2="50" stroke="#FAF8F5" strokeOpacity="0.08" strokeWidth="0.8" />
+                  <line x1="0" y1="80" x2="100" y2="80" stroke="#FAF8F5" strokeOpacity="0.08" strokeWidth="0.8" />
+                  <line x1="30" y1="0" x2="30" y2="100" stroke="#FAF8F5" strokeOpacity="0.08" strokeWidth="0.8" />
+                  <line x1="70" y1="0" x2="70" y2="100" stroke="#FAF8F5" strokeOpacity="0.08" strokeWidth="0.8" />
+                  <line x1="0" y1="100" x2="100" y2="0" stroke="#C4A265" strokeOpacity="0.15" strokeWidth="1.2" />
+                  <circle cx="65" cy="35" r="4" fill="#C4A265" />
+                  <circle cx="65" cy="35" r="9" fill="none" stroke="#C4A265" strokeWidth="0.8" strokeDasharray="2" />
                 </svg>
                 <div className="relative z-10 text-center">
-                  <div className="text-xs font-semibold text-gold tracking-widest uppercase mb-1">Hayagriva interiors Location</div>
-                  <div className="text-[10px] text-gray-400">Clicking map opens directions in Google Maps</div>
+                  <div className="text-[10px] font-bold text-gold tracking-widest uppercase mb-1">Hayagriva location map</div>
+                  <div className="text-[9px] text-beige/40 uppercase tracking-widest">Click to navigate on Google Maps</div>
                 </div>
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=second%20floor%2C%20DR%20DEEN%20COMPLEX%2C%2051-15-1%2F6%2C%20opposite%20to%20Tech%20Mahindra%2C%20Satyam%20Junction%2C%20KRANTHI%20NAGAR%2C%20Maddilapalem%2C%20Visakhapatnam%2C%20Andhra%20Pradesh%20530013"
@@ -108,16 +113,16 @@ export default function Contact() {
             </div>
           </motion.div>
 
-          {/* Form Column */}
+          {/* Form Column (Premium Light Card) */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="lg:col-span-7 bg-white rounded-3xl border border-gray-100 shadow-xl p-8 sm:p-12 flex flex-col justify-center"
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-7 bg-white border border-charcoal/5 rounded-3xl shadow-xl p-8 sm:p-12 flex flex-col justify-center relative"
           >
-            <span className="text-xs font-semibold text-gold tracking-wider uppercase mb-1">Book Consultation</span>
-            <h3 className="text-3xl font-serif text-charcoal mb-8">Discuss Your Space</h3>
+            <span className="text-[10px] font-bold text-gold tracking-widest uppercase mb-2">Book Consultation</span>
+            <h3 className="text-3xl font-bold font-serif text-charcoal mb-8">Discuss Your Space</h3>
             <ContactForm />
           </motion.div>
 

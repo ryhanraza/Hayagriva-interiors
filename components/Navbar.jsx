@@ -34,20 +34,23 @@ export default function Navbar() {
     { name: 'About Us', href: '/about' }
   ]
 
+  const isDarkHeroPage = pathname === '/' || pathname === '/about'
+  const showDarkNavbar = scrolled || !isDarkHeroPage
+
   return (
     <>
       <header
-        className={`sticky top-0 z-50 transition-all duration-500 ${
-          scrolled 
-            ? 'bg-warmcream/80 backdrop-blur-md shadow-sm border-b border-gray-100 py-3' 
-            : 'bg-transparent py-5'
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+          showDarkNavbar 
+            ? 'bg-charcoal-luxury/90 backdrop-blur-lg shadow-xl border-b border-white/5 py-3.5' 
+            : 'bg-transparent py-6'
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="group flex items-center gap-2">
-            <span className="font-serif text-lg sm:text-xl tracking-wider text-charcoal group-hover:text-gold transition-colors font-bold italic uppercase">
-              Hayagriva Interiors<span className="text-gold font-normal not-italic">.</span>
+            <span className="font-serif text-base sm:text-lg md:text-2xl tracking-widest text-beige-luxury group-hover:text-gold-metallic transition-colors font-bold uppercase">
+              Hayagriva Interiors<span className="text-gold-metallic font-normal">.</span>
             </span>
           </Link>
 
@@ -59,15 +62,15 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-xs font-semibold uppercase tracking-widest hover:text-gold transition-colors relative py-1 ${
-                    isActive ? 'text-gold' : 'text-charcoal'
+                  className={`text-xs font-semibold uppercase tracking-widest hover:text-gold-metallic transition-colors relative py-1 transition-all ${
+                    isActive ? 'text-gold-metallic' : 'text-beige-luxury/70'
                   }`}
                 >
                   {link.name}
                   {isActive && (
                     <motion.span
                       layoutId="navUnderline"
-                      className="absolute bottom-0 left-0 w-full h-[1.5px] bg-gold"
+                      className="absolute bottom-0 left-0 w-full h-[2px] bg-gold-metallic"
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -76,7 +79,7 @@ export default function Navbar() {
             })}
             <Link
               href="/contact"
-              className="px-5 py-2.5 bg-charcoal hover:bg-gold text-white text-xs font-semibold uppercase tracking-widest rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+              className="px-6 py-2.5 bg-white/10 hover:bg-gold-metallic text-beige-luxury hover:text-black-luxury border border-white/15 hover:border-gold-metallic text-xs font-semibold uppercase tracking-widest rounded-full transition-all duration-500 flex items-center gap-2 shadow-sm"
             >
               <span>Contact</span>
               <ArrowRight size={12} />
@@ -85,7 +88,7 @@ export default function Navbar() {
 
           {/* Hamburger Menu Trigger */}
           <button
-            className="md:hidden text-charcoal focus:outline-none p-1"
+            className="md:hidden text-beige-luxury focus:outline-none p-1 hover:text-gold-metallic transition-colors"
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
@@ -102,7 +105,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-x-0 top-[60px] z-40 bg-warmcream border-b border-gray-100 shadow-xl px-6 py-8 flex flex-col gap-6 md:hidden"
+            className="fixed inset-x-0 top-[70px] z-40 bg-black-luxury/95 backdrop-blur-xl border-b border-white/5 shadow-2xl px-6 py-8 flex flex-col gap-6 md:hidden"
           >
             <div className="flex flex-col gap-4">
               {links.map((link) => {
@@ -111,17 +114,17 @@ export default function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`text-sm font-semibold uppercase tracking-wider py-2 border-b border-gray-100/60 ${
-                      isActive ? 'text-gold font-bold' : 'text-charcoal'
+                    className={`text-sm font-semibold uppercase tracking-widest py-3.5 border-b border-white/5 transition-colors ${
+                      isActive ? 'text-gold-metallic font-bold' : 'text-beige-luxury/70 hover:text-gold-metallic'
                     }`}
                   >
                     {link.name}
                   </Link>
-                )}
-              )}
+                )
+              })}
               <Link
                 href="/contact"
-                className="w-full text-center py-3.5 bg-charcoal hover:bg-gold text-white text-xs font-semibold uppercase tracking-widest rounded-xl transition-colors mt-2"
+                className="w-full text-center py-4 bg-gold-metallic hover:bg-white text-black-luxury hover:text-black-luxury text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 mt-4 shadow-lg shadow-gold-metallic/20"
               >
                 Book Consultation
               </Link>

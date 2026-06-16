@@ -43,18 +43,19 @@ export default function ContactForm() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center p-8 bg-gold/5 border border-gold/25 rounded-2xl flex flex-col items-center"
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center p-10 bg-gold/5 border border-gold/15 rounded-3xl flex flex-col items-center"
         >
-          <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center text-gold mb-4">
-            <CheckCircle2 size={36} />
+          <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center text-gold mb-6 border border-gold/20">
+            <CheckCircle2 size={32} />
           </div>
-          <h4 className="text-xl font-semibold font-serif text-charcoal mb-2">Consultation Booking Received</h4>
-          <p className="text-sm text-muted max-w-sm mb-6">
-            Thank you, {formData.name}. Our studio manager will call you within 24 hours to schedule your session.
+          <h4 className="text-xl font-bold font-serif text-charcoal mb-3">Consultation Session Booked</h4>
+          <p className="text-xs sm:text-sm text-charcoal/60 max-w-sm mb-8 leading-relaxed">
+            Thank you, {formData.name}. Our design coordinator will call you within 24 hours to schedule your session.
           </p>
-          <div className="flex items-center gap-2 text-xs font-semibold text-gold bg-gold/10 px-4 py-2 rounded-full">
-            <CalendarDays size={14} />
-            <span>Expect call: Mon-Sat, 9 AM - 6 PM</span>
+          <div className="flex items-center gap-2 text-xs font-bold text-gold bg-gold/5 px-5 py-2.5 rounded-full border border-gold/10">
+            <CalendarDays size={14} className="stroke-gold" />
+            <span className="text-gold-dark">Studio Office: Mon-Sat, 9:30 AM - 7:00 PM</span>
           </div>
         </motion.div>
       ) : (
@@ -67,7 +68,7 @@ export default function ContactForm() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Name"
-                className="w-full px-4 py-3.5 bg-warmcream/30 border border-gray-200 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/30 text-charcoal placeholder-gray-400 text-sm transition-all"
+                className="w-full px-5 py-4 bg-charcoal/5 border border-charcoal/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/20 text-charcoal placeholder-charcoal/40 text-sm transition-all"
                 required
               />
             </div>
@@ -78,7 +79,7 @@ export default function ContactForm() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email Address"
-                className="w-full px-4 py-3.5 bg-warmcream/30 border border-gray-200 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/30 text-charcoal placeholder-gray-400 text-sm transition-all"
+                className="w-full px-5 py-4 bg-charcoal/5 border border-charcoal/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/20 text-charcoal placeholder-charcoal/40 text-sm transition-all"
                 required
               />
             </div>
@@ -90,8 +91,8 @@ export default function ContactForm() {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="Phone Number (e.g. +91 99999 88888)"
-              className="w-full px-4 py-3.5 bg-warmcream/30 border border-gray-200 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/30 text-charcoal placeholder-gray-400 text-sm transition-all"
+              placeholder="Phone Number (e.g. +91 95731 78887)"
+              className="w-full px-5 py-4 bg-charcoal/5 border border-charcoal/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/20 text-charcoal placeholder-charcoal/40 text-sm transition-all"
               required
             />
           </div>
@@ -99,11 +100,11 @@ export default function ContactForm() {
           <div className="relative">
             <textarea
               name="message"
-              rows={4}
+              rows={5}
               value={formData.message}
               onChange={handleChange}
-              placeholder="Tell us about your space (e.g. 3BHK flat, Modular Kitchen, commercial lobby...)"
-              className="w-full px-4 py-3.5 bg-warmcream/30 border border-gray-200 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/30 text-charcoal placeholder-gray-400 text-sm transition-all resize-none"
+              placeholder="Tell us about your space (e.g., 3BHK Apartment, Modular Kitchen, Office Lobby...)"
+              className="w-full px-5 py-4 bg-charcoal/5 border border-charcoal/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/20 text-charcoal placeholder-charcoal/40 text-sm transition-all resize-none"
               required
             />
           </div>
@@ -111,13 +112,13 @@ export default function ContactForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 bg-charcoal text-white rounded-xl font-semibold hover:bg-gold transition-colors duration-300 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+            className="w-full py-4 bg-gold hover:bg-charcoal hover:text-white text-charcoal font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-gold/15 flex items-center justify-center gap-2.5 disabled:opacity-50 transition-all duration-300"
           >
             {isSubmitting ? (
-              <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="w-5 h-5 border-2 border-charcoal border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <Send size={16} />
+                <Send size={15} />
                 <span>Book Free Design Session</span>
               </>
             )}
