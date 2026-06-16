@@ -5,8 +5,9 @@
 @tailwind utilities;
 
 :root {
-  --bg: #FAF8F5;
-  --muted: #8A8885;
+  --bg: #0B0B0A;
+  --text-primary: #F4EFE6;
+  --muted: #9C9A96;
 }
 
 html {
@@ -16,7 +17,7 @@ html {
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   background: var(--bg);
-  color: #1A1917;
+  color: var(--text-primary);
   overflow-x: hidden;
 }
 
@@ -24,22 +25,25 @@ body {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #FAF8F5;
+  background: #0B0B0A;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #E5DFD5;
+  background: #222220;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #C4A265;
+  background: #D4AF37;
 }
 
 .glass-premium {
-  background: rgba(250, 248, 245, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(196, 162, 101, 0.15);
+  background: rgba(18, 18, 17, 0.75);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
 }
 
 .text-muted {
@@ -47,10 +51,25 @@ body {
 }
 
 .bg-beige {
-  background-color: #F5EFE6;
+  background-color: #1A1917;
 }
 
 /* Luxury transitions */
 .transition-luxury {
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #F5EFE6 0%, #D4AF37 50%, #A68A56 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-luxury-gold {
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.bg-radial-glow {
+  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
 }

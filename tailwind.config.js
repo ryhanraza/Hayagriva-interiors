@@ -14,7 +14,12 @@ module.exports = {
         beige: '#F6F0E6',
         charcoal: '#1A1917',
         warmcream: '#FAF8F5',
-        softgrey: '#8A8885'
+        softgrey: '#8A8885',
+        'black-luxury': '#0B0B0A',
+        'charcoal-luxury': '#121211',
+        'gold-metallic': '#D4AF37',
+        'gold-mute': '#A68A56',
+        'beige-luxury': '#F4EFE6'
       },
       fontFamily: {
         serif: ['Playfair Display', 'serif'],
