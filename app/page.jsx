@@ -174,10 +174,10 @@ export default function Home() {
   ]
 
   return (
-    <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden pt-20">
+    <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden">
       
       {/* 1. HERO SECTION (Full Screen) */}
-      <section className="relative min-h-[calc(100vh-80px)] flex items-center justify-center bg-charcoal text-white overflow-hidden py-16 px-6">
+      <section className="relative min-h-screen flex items-center justify-center bg-charcoal text-white overflow-hidden pt-32 pb-20 px-6">
         {/* Background Image with elegant overlay */}
         <div className="absolute inset-0 z-0">
           <Image 

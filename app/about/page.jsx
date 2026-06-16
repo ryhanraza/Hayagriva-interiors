@@ -75,10 +75,10 @@ const blogPosts = [
 
 export default function About() {
   return (
-    <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden pt-20">
+    <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden">
       
       {/* 1. HERO SECTION (MATCH HOMEPAGE DARK HERO STYLE) */}
-      <section className="relative bg-charcoal text-white overflow-hidden py-20 md:py-28 px-6">
+      <section className="relative bg-charcoal text-white overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28 px-6">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gold/15 via-transparent to-transparent pointer-events-none" />
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-gold/5 rounded-full blur-[120px] pointer-events-none" />
 
