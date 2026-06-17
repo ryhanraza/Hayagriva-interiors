@@ -4,16 +4,15 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { insforgeClient } from '../../../lib/insforge-client'
 import { motion } from 'framer-motion'
-import { Lock, Mail, User, ShieldAlert, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react'
+import { Lock, Mail, ShieldAlert, ArrowRight, Loader2 } from 'lucide-react'
 
 function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [isLogin, setIsLogin] = useState(true)
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' })
+  const ADMIN_EMAIL = 'interiorsbyhayagriva@gmail.com'
+  const [formData, setFormData] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -31,56 +30,27 @@ function AdminLoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setSuccess('')
     setIsLoading(true)
 
     try {
-      if (isLogin) {
-        // Sign In
-        const { data, error: authError } = await insforgeClient.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        })
+      if (formData.email !== ADMIN_EMAIL) {
+        throw new Error('Access Denied: Only the authorized admin email may log in.')
+      }
 
-        if (authError) {
-          throw authError
-        }
+      const { data, error: authError } = await insforgeClient.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      })
 
-        if (data?.accessToken) {
-          // Double check email before redirecting
-          const allowedAdminEmails = ['admin@example.com', '22rayyanraza@gmail.com', 'interiorsbyhayagriva@gmail.com']
-          if (!allowedAdminEmails.includes(data.user.email)) {
-            await insforgeClient.auth.signOut()
-            setError('Access Denied: Your email is not in the allowed admin list.')
-            setIsLoading(false)
-            return
-          }
-          
-          router.replace('/admin/dashboard')
-        }
-      } else {
-        // Sign Up / Register
-        const allowedAdminEmails = ['admin@example.com', '22rayyanraza@gmail.com', 'interiorsbyhayagriva@gmail.com']
-        if (!allowedAdminEmails.includes(formData.email)) {
-          throw new Error('Registration Forbidden: Only authorized admin emails can sign up.')
-        }
+      if (authError) {
+        throw authError
+      }
 
-        const { data, error: signUpError } = await insforgeClient.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          name: formData.name || 'Admin',
-        })
-
-        if (signUpError) {
-          throw signUpError
+      if (data?.accessToken) {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('hayagriva_admin_access_token', data.accessToken)
         }
-
-        if (data?.requireEmailVerification) {
-          setSuccess('Registration successful! Please check your email for a verification link.')
-        } else {
-          setSuccess('Registration successful! You can now log in.')
-          setIsLogin(true)
-        }
+        router.replace('/admin/dashboard')
       }
     } catch (err) {
       if (err.message && (err.message.includes('fetch') || err.message.includes('Network'))) {
@@ -105,10 +75,10 @@ function AdminLoginForm() {
             Hayagriva Interiors
           </span>
           <h1 className="text-2xl sm:text-3xl font-serif text-beige-luxury font-black tracking-wide leading-tight">
-            {isLogin ? 'Admin Portal' : 'Register Admin'}
+            Admin Portal
           </h1>
           <p className="text-xs text-beige-luxury/50 mt-2">
-            {isLogin ? 'Please enter credentials to manage your workspace.' : 'Create a new secure workspace account.'}
+            Enter the authorized admin credentials to continue.
           </p>
         </div>
 
@@ -124,35 +94,8 @@ function AdminLoginForm() {
           </motion.div>
         )}
 
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-6 p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/25 flex items-start gap-3 text-emerald-200 text-xs leading-relaxed"
-          >
-            <CheckCircle2 className="stroke-emerald-400 shrink-0 mt-0.5" size={16} />
-            <span>{success}</span>
-          </motion.div>
-        )}
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {!isLogin && (
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-beige-luxury/45">
-                <User size={16} />
-              </span>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Full Name"
-                className="w-full pl-12 pr-5 py-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-sm transition-all"
-                required
-              />
-            </div>
-          )}
 
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-beige-luxury/45">
@@ -193,26 +136,13 @@ function AdminLoginForm() {
               <span className="w-5 h-5 border-2 border-black-luxury border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                <span>Sign In</span>
                 <ArrowRight size={14} />
               </>
             )}
           </button>
         </form>
 
-        {/* Toggle Link */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin)
-              setError('')
-              setSuccess('')
-            }}
-            className="text-xs text-beige-luxury/50 hover:text-gold-metallic transition-colors"
-          >
-            {isLogin ? "Need to create an admin account? Register" : "Already have an admin account? Sign In"}
-          </button>
-        </div>
       </div>
     </div>
   )

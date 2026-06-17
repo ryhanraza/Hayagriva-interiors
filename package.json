@@ -18,5 +18,8 @@
     "react": "latest",
     "react-dom": "latest",
     "tailwindcss": "^3.4.7"
+  },
+  "devDependencies": {
+    "@insforge/cli": "^0.1.91"
   }
 }

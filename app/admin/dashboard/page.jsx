@@ -19,6 +19,7 @@ import {
   Eye,
   X,
   PlusCircle,
+  CheckCircle2,
   Tag,
   DollarSign,
   TrendingUp,
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
     description: '',
     date: new Date().toISOString().split('T')[0]
   })
-  
+
   const [uploadingImage, setUploadingImage] = useState(false)
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -76,8 +77,7 @@ export default function AdminDashboard() {
           return
         }
 
-        const allowedAdminEmails = ['admin@example.com', '22rayyanraza@gmail.com']
-        if (!allowedAdminEmails.includes(data.user.email)) {
+        if (data.user.email !== 'interiorsbyhayagriva@gmail.com') {
           await insforgeClient.auth.signOut()
           router.replace('/admin/login?error=unauthorized')
           return
@@ -85,7 +85,8 @@ export default function AdminDashboard() {
 
         setUser(data.user)
         setAuthLoading(false)
-        fetchDashboardData(data.accessToken)
+        const token = insforgeClient.auth?.tokenManager?.getAccessToken?.()
+        fetchDashboardData(token)
       } catch (err) {
         console.error('Session verification error:', err)
         router.replace('/admin/login')
@@ -96,40 +97,41 @@ export default function AdminDashboard() {
 
   // Get authentication token helper
   async function getHeaders() {
-    const { data } = await insforgeClient.auth.getCurrentUser()
-    const token = data?.user ? (await insforgeClient.auth.getCurrentUser())?.data?.user ? window.localStorage.getItem('insforge_session') 
-      ? JSON.parse(window.localStorage.getItem('insforge_session'))?.accessToken 
-      : null : null : null
-    
-    // Fallback: If not in local storage directly, let's extract it or use an empty authorization
-    // In InsForge SDK, the session is stored in localStorage under 'insforge_session' or cookies
-    let activeToken = token
-    if (!activeToken && typeof window !== 'undefined') {
-      for (let i = 0; i < window.localStorage.length; i++) {
-        const key = window.localStorage.key(i)
-        if (key && key.includes('insforge_session')) {
-          try {
-            activeToken = JSON.parse(window.localStorage.getItem(key))?.accessToken
-          } catch {}
-        }
+    let accessToken = insforgeClient.auth?.tokenManager?.getAccessToken?.()
+
+    if (!accessToken && typeof window !== 'undefined') {
+      accessToken = window.localStorage.getItem('hayagriva_admin_access_token')
+      if (accessToken) {
+        insforgeClient.setAccessToken(accessToken)
       }
     }
 
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${activeToken}`
+    if (!accessToken) {
+      const { data, error } = await insforgeClient.auth.getCurrentUser()
+      if (!error && data?.user) {
+        accessToken = insforgeClient.auth?.tokenManager?.getAccessToken?.()
+      }
     }
+
+    const headers = { 'Content-Type': 'application/json' }
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`
+    }
+
+    return headers
   }
 
   // Fetch all dashboard data from API routes
-  async function fetchDashboardData() {
+  async function fetchDashboardData(passedToken) {
     setLoadingData(true)
     setErrorMsg('')
     try {
-      const headers = await getHeaders()
+      const headers = passedToken
+        ? { 'Content-Type': 'application/json', Authorization: `Bearer ${passedToken}` }
+        : await getHeaders()
 
       // Fetch Contacts
-      const contactsRes = await fetch('/api/admin/contacts', { headers })
+      const contactsRes = await fetch('/api/admin/contacts', { ...headers, credentials: 'include' })
       const contactsData = await contactsRes.json()
 
       // Fetch Projects (public route supports dynamic db seed, admin can load from there)
@@ -137,7 +139,7 @@ export default function AdminDashboard() {
       const projectsData = await projectsRes.json()
 
       // Fetch Expenses
-      const expensesRes = await fetch('/api/admin/expenses', { headers })
+      const expensesRes = await fetch('/api/admin/expenses', { ...headers, credentials: 'include' })
       const expensesData = await expensesRes.json()
 
       if (Array.isArray(contactsData)) setContacts(contactsData)
@@ -153,6 +155,9 @@ export default function AdminDashboard() {
 
   const handleSignOut = async () => {
     await insforgeClient.auth.signOut()
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('hayagriva_admin_access_token')
+    }
     router.replace('/admin/login')
   }
 
@@ -205,7 +210,8 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/projects', {
         method,
         headers,
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        credentials: 'include'
       })
 
       const result = await res.json()
@@ -245,7 +251,8 @@ export default function AdminDashboard() {
       const headers = await getHeaders()
       const res = await fetch(`/api/admin/projects?id=${id}`, {
         method: 'DELETE',
-        headers
+        headers,
+        credentials: 'include'
       })
 
       const result = await res.json()
@@ -268,7 +275,8 @@ export default function AdminDashboard() {
       const headers = await getHeaders()
       const res = await fetch(`/api/admin/contacts?id=${id}`, {
         method: 'DELETE',
-        headers
+        headers,
+        credentials: 'include'
       })
 
       const result = await res.json()
@@ -294,7 +302,8 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/expenses', {
         method: 'POST',
         headers,
-        body: JSON.stringify(expenseFormData)
+        body: JSON.stringify(expenseFormData),
+        credentials: 'include'
       })
 
       const result = await res.json()
@@ -326,7 +335,8 @@ export default function AdminDashboard() {
       const headers = await getHeaders()
       const res = await fetch(`/api/admin/expenses?id=${id}`, {
         method: 'DELETE',
-        headers
+        headers,
+        credentials: 'include'
       })
 
       const result = await res.json()
@@ -403,11 +413,10 @@ export default function AdminDashboard() {
           <nav className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 py-2 lg:py-0 border-t border-b lg:border-0 border-white/5">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${
-                activeTab === 'overview'
-                  ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
-                  : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${activeTab === 'overview'
+                ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
+                : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
+                }`}
             >
               <TrendingUp size={16} />
               <span>Overview</span>
@@ -415,11 +424,10 @@ export default function AdminDashboard() {
 
             <button
               onClick={() => setActiveTab('contacts')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${
-                activeTab === 'contacts'
-                  ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
-                  : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${activeTab === 'contacts'
+                ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
+                : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
+                }`}
             >
               <MessageSquare size={16} />
               <span>Inquiries ({contacts.length})</span>
@@ -427,11 +435,10 @@ export default function AdminDashboard() {
 
             <button
               onClick={() => setActiveTab('projects')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${
-                activeTab === 'projects'
-                  ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
-                  : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${activeTab === 'projects'
+                ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
+                : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
+                }`}
             >
               <FolderKanban size={16} />
               <span>Portfolio ({projects.length})</span>
@@ -439,11 +446,10 @@ export default function AdminDashboard() {
 
             <button
               onClick={() => setActiveTab('expenses')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${
-                activeTab === 'expenses'
-                  ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
-                  : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${activeTab === 'expenses'
+                ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
+                : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
+                }`}
             >
               <IndianRupee size={16} />
               <span>Expenses</span>
