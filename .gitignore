@@ -53,3 +53,5 @@ next-env.d.ts
 /inspect-insforge-auth.mjs
 /test-auth.mjs
 
+
+.vercel
