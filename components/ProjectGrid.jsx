@@ -1,15 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, DollarSign, Tag } from 'lucide-react'
-import { projects } from '../lib/projects'
+import { ArrowRight, DollarSign, Tag, Loader2 } from 'lucide-react'
 
 export default function ProjectGrid({ filter = 'All' }) {
-  // Pagination state: start with showing 6 projects, load 3 more at a time
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
   const [visibleCount, setVisibleCount] = useState(6)
+
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/projects')
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setProjects(data)
+        }
+      } catch (err) {
+        console.error('Failed to load projects', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProjects()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-4 text-charcoal/50">
+        <Loader2 className="animate-spin text-gold" size={36} />
+        <span className="text-xs uppercase tracking-[0.2em] font-bold text-gold-mute">Loading Projects...</span>
+      </div>
+    )
+  }
 
   // Filter projects by category
   const filteredProjects =
