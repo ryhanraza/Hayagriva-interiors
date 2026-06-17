@@ -83,7 +83,11 @@ function AdminLoginForm() {
         }
       }
     } catch (err) {
-      setError(err.message || 'Authentication failed. Please try again.')
+      if (err.message && (err.message.includes('fetch') || err.message.includes('Network'))) {
+        setError('Network Connection Failed: Could not connect to the backend database. Please check your internet connection, restart your Next.js dev server, or check if an adblocker/firewall is blocking requests to the backend API.')
+      } else {
+        setError(err.message || 'Authentication failed. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
