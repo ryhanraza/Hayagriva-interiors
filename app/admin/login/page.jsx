@@ -48,7 +48,7 @@ function AdminLoginForm() {
 
         if (data?.accessToken) {
           // Double check email before redirecting
-          const allowedAdminEmails = ['admin@example.com', '22rayyanraza@gmail.com']
+          const allowedAdminEmails = ['admin@example.com', '22rayyanraza@gmail.com', 'interiorsbyhayagriva@gmail.com']
           if (!allowedAdminEmails.includes(data.user.email)) {
             await insforgeClient.auth.signOut()
             setError('Access Denied: Your email is not in the allowed admin list.')
@@ -60,7 +60,7 @@ function AdminLoginForm() {
         }
       } else {
         // Sign Up / Register
-        const allowedAdminEmails = ['admin@example.com', '22rayyanraza@gmail.com']
+        const allowedAdminEmails = ['admin@example.com', '22rayyanraza@gmail.com', 'interiorsbyhayagriva@gmail.com']
         if (!allowedAdminEmails.includes(formData.email)) {
           throw new Error('Registration Forbidden: Only authorized admin emails can sign up.')
         }
