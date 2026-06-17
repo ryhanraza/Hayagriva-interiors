@@ -19,7 +19,8 @@ import {
   Eye,
   X,
   PlusCircle,
-  CheckCircle2,
+  CheckCircle,
+  ShieldAlert,
   Tag,
   DollarSign,
   TrendingUp,
@@ -131,7 +132,10 @@ export default function AdminDashboard() {
         : await getHeaders()
 
       // Fetch Contacts
-      const contactsRes = await fetch('/api/admin/contacts', { ...headers, credentials: 'include' })
+      const contactsRes = await fetch('/api/admin/contacts', {
+        headers,
+        credentials: 'include'
+      })
       const contactsData = await contactsRes.json()
 
       // Fetch Projects (public route supports dynamic db seed, admin can load from there)
@@ -139,7 +143,10 @@ export default function AdminDashboard() {
       const projectsData = await projectsRes.json()
 
       // Fetch Expenses
-      const expensesRes = await fetch('/api/admin/expenses', { ...headers, credentials: 'include' })
+      const expensesRes = await fetch('/api/admin/expenses', {
+        headers,
+        credentials: 'include'
+      })
       const expensesData = await expensesRes.json()
 
       if (Array.isArray(contactsData)) setContacts(contactsData)
@@ -1311,7 +1318,7 @@ export default function AdminDashboard() {
                       <Loader2 className="animate-spin text-black-luxury" size={14} />
                     ) : (
                       <>
-                        <CheckCircle2 size={14} />
+                        <CheckCircle size={14} />
                         <span>{projectForm === 'add' ? 'Publish Project' : 'Save Changes'}</span>
                       </>
                     )}

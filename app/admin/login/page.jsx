@@ -49,6 +49,7 @@ function AdminLoginForm() {
       if (data?.accessToken) {
         if (typeof window !== 'undefined') {
           window.localStorage.setItem('hayagriva_admin_access_token', data.accessToken)
+          insforgeClient.setAccessToken(data.accessToken)
         }
         router.replace('/admin/dashboard')
       }
