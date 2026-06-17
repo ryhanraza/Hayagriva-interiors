@@ -54,10 +54,12 @@ function AdminLoginForm() {
         router.replace('/admin/dashboard')
       }
     } catch (err) {
+      console.error('Login error:', err);
+      const rawMsg = err.message || JSON.stringify(err);
       if (err.message && (err.message.includes('fetch') || err.message.includes('Network'))) {
-        setError('Network Connection Failed: Could not connect to the backend database. Please check your internet connection, restart your Next.js dev server, or check if an adblocker/firewall is blocking requests to the backend API.')
+        setError(`Network Connection Failed: Could not connect to the backend database (Detail: ${rawMsg}). Please check your internet connection, restart your Next.js dev server, or check if an adblocker/firewall is blocking requests to the backend API.`);
       } else {
-        setError(err.message || 'Authentication failed. Please try again.')
+        setError(rawMsg || 'Authentication failed. Please try again.');
       }
     } finally {
       setIsLoading(false)
