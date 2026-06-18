@@ -78,7 +78,9 @@ export default function AdminDashboard() {
           return
         }
 
-        if (data.user.email !== 'interiorsbyhayagriva@gmail.com') {
+        const allowedEmails = ['interiorsbyhayagriva@gmail.com', 'interiorsbyhayagriya@gmail.com']
+        const userEmail = data.user.email?.toLowerCase().trim()
+        if (!userEmail || !allowedEmails.includes(userEmail)) {
           await insforgeClient.auth.signOut()
           router.replace('/admin/login?error=unauthorized')
           return

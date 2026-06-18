@@ -18,7 +18,9 @@ export default function AdminIndex() {
         }
 
         // Restrict to authorized admin email
-        if (data.user.email === 'interiorsbyhayagriva@gmail.com') {
+        const allowedEmails = ['interiorsbyhayagriva@gmail.com', 'interiorsbyhayagriya@gmail.com'];
+        const userEmail = data.user.email?.toLowerCase().trim();
+        if (userEmail && allowedEmails.includes(userEmail)) {
           router.replace('/admin/dashboard')
         } else {
           await insforgeClient.auth.signOut()

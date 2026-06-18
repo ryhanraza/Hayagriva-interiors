@@ -9,8 +9,7 @@ import { Lock, Mail, ShieldAlert, ArrowRight, Loader2 } from 'lucide-react'
 function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-
-  const ADMIN_EMAIL = 'interiorsbyhayagriva@gmail.com'
+  const ALLOWED_ADMIN_EMAILS = ['interiorsbyhayagriva@gmail.com', 'interiorsbyhayagriya@gmail.com']
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -33,7 +32,8 @@ function AdminLoginForm() {
     setIsLoading(true)
 
     try {
-      if (formData.email !== ADMIN_EMAIL) {
+      const enteredEmail = formData.email.toLowerCase().trim()
+      if (!ALLOWED_ADMIN_EMAILS.includes(enteredEmail)) {
         throw new Error('Access Denied: Only the authorized admin email may log in.')
       }
 

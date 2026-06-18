@@ -14,8 +14,10 @@ export async function POST(request) {
             });
         }
 
+        const allowedEmails = ['interiorsbyhayagriva@gmail.com', 'interiorsbyhayagriya@gmail.com'];
+        const enteredEmail = email?.toLowerCase().trim();
         // Only allow creating the specific admin user
-        if (email !== 'interiorsbyhayagriva@gmail.com' || password !== allowedPassword) {
+        if (!enteredEmail || !allowedEmails.includes(enteredEmail) || password !== allowedPassword) {
             return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
@@ -40,12 +42,10 @@ export async function POST(request) {
         }
 
         // Try to sign up
-        const { data, error } = await insforgeClient.auth.signUpWithPassword({
+        const { data, error } = await insforgeClient.auth.signUp({
             email,
             password,
-            options: {
-                emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/admin/dashboard`,
-            }
+            redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/admin/dashboard`
         });
 
         if (error) {
