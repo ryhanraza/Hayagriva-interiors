@@ -24,6 +24,9 @@ import {
   Tag,
   DollarSign,
   TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
   LayoutDashboard
 } from 'lucide-react'
 
@@ -61,7 +64,8 @@ export default function AdminDashboard() {
     amount: '',
     category: 'Materials',
     description: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    type: 'expense'
   })
 
   const [uploadingImage, setUploadingImage] = useState(false)
@@ -323,9 +327,10 @@ export default function AdminDashboard() {
       // Reset Form
       setExpenseFormData({
         amount: '',
-        category: 'Materials',
+        category: expenseFormData.type === 'income' ? 'Project Payment' : 'Materials',
         description: '',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        type: expenseFormData.type
       })
       fetchDashboardData()
     } catch (err) {
@@ -378,8 +383,14 @@ export default function AdminDashboard() {
   }
 
   // Calculations for Overview Stats
-  const totalExpenses = expenses.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0)
-  const categoryExpenses = expenses.reduce((acc, item) => {
+  const expenseItems = expenses.filter(item => item.type === 'expense' || !item.type)
+  const incomeItems = expenses.filter(item => item.type === 'income')
+
+  const totalExpenses = expenseItems.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0)
+  const totalIncome = incomeItems.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0)
+  const netProfitLoss = totalIncome - totalExpenses
+
+  const categoryExpenses = expenseItems.reduce((acc, item) => {
     acc[item.category] = (acc[item.category] || 0) + parseFloat(item.amount || 0)
     return acc
   }, {})
@@ -530,28 +541,28 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="glass-premium rounded-2xl p-6 relative overflow-hidden">
                     <span className="text-[10px] font-bold tracking-widest text-beige-luxury/40 uppercase block">
                       Total Inquiries
                     </span>
-                    <span className="text-3xl sm:text-4xl font-serif font-bold text-beige-luxury block mt-3">
+                    <span className="text-3xl font-serif font-bold text-beige-luxury block mt-3">
                       {contacts.length}
                     </span>
                     <div className="absolute right-6 bottom-6 text-gold-metallic/20">
-                      <MessageSquare size={48} />
+                      <MessageSquare size={40} />
                     </div>
                   </div>
 
                   <div className="glass-premium rounded-2xl p-6 relative overflow-hidden">
                     <span className="text-[10px] font-bold tracking-widest text-beige-luxury/40 uppercase block">
-                      Portfolio Projects
+                      Total Revenue
                     </span>
-                    <span className="text-3xl sm:text-4xl font-serif font-bold text-beige-luxury block mt-3">
-                      {projects.length}
+                    <span className="text-3xl font-serif font-bold text-emerald-400 block mt-3">
+                      ₹{totalIncome.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                     </span>
-                    <div className="absolute right-6 bottom-6 text-gold-metallic/20">
-                      <FolderKanban size={48} />
+                    <div className="absolute right-6 bottom-6 text-emerald-500/20">
+                      <ArrowUpRight size={40} />
                     </div>
                   </div>
 
@@ -559,11 +570,23 @@ export default function AdminDashboard() {
                     <span className="text-[10px] font-bold tracking-widest text-beige-luxury/40 uppercase block">
                       Total Expenses
                     </span>
-                    <span className="text-3xl sm:text-4xl font-serif font-bold text-gold-metallic block mt-3">
+                    <span className="text-3xl font-serif font-bold text-rose-400 block mt-3">
                       ₹{totalExpenses.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                     </span>
-                    <div className="absolute right-6 bottom-6 text-gold-metallic/20">
-                      <IndianRupee size={48} />
+                    <div className="absolute right-6 bottom-6 text-rose-500/20">
+                      <ArrowDownRight size={40} />
+                    </div>
+                  </div>
+
+                  <div className="glass-premium rounded-2xl p-6 relative overflow-hidden">
+                    <span className="text-[10px] font-bold tracking-widest text-beige-luxury/40 uppercase block">
+                      Net Balance
+                    </span>
+                    <span className={`text-3xl font-serif font-bold block mt-3 ${netProfitLoss >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {netProfitLoss >= 0 ? '+' : ''}₹{netProfitLoss.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                    </span>
+                    <div className={`absolute right-6 bottom-6 ${netProfitLoss >= 0 ? 'text-emerald-500/20' : 'text-rose-500/20'}`}>
+                      {netProfitLoss >= 0 ? <TrendingUp size={40} /> : <TrendingDown size={40} />}
                     </div>
                   </div>
                 </div>
@@ -830,20 +853,61 @@ export default function AdminDashboard() {
                 exit={{ opacity: 0, y: -15 }}
                 className="space-y-8"
               >
-                <div>
-                  <span className="text-[10px] font-bold tracking-[0.25em] text-gold-metallic uppercase">
-                    Financial Ledger
-                  </span>
-                  <h2 className="text-3xl font-serif text-beige-luxury font-black mt-2">
-                    Expenses Sheet
-                  </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] font-bold tracking-[0.25em] text-gold-metallic uppercase">
+                      Financial Ledger
+                    </span>
+                    <h2 className="text-3xl font-serif text-beige-luxury font-black mt-2">
+                      Expenses & Revenue
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Ledger Stats Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  <div className="glass-premium rounded-2xl p-5 relative overflow-hidden">
+                    <span className="text-[9px] font-bold tracking-widest text-beige-luxury/40 uppercase block">
+                      Total Income
+                    </span>
+                    <span className="text-2xl font-serif font-bold text-emerald-400 block mt-2">
+                      ₹{totalIncome.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                    </span>
+                    <div className="absolute right-4 bottom-4 text-emerald-500/10">
+                      <ArrowUpRight size={32} />
+                    </div>
+                  </div>
+
+                  <div className="glass-premium rounded-2xl p-5 relative overflow-hidden">
+                    <span className="text-[9px] font-bold tracking-widest text-beige-luxury/40 uppercase block">
+                      Total Expenses
+                    </span>
+                    <span className="text-2xl font-serif font-bold text-rose-400 block mt-2">
+                      ₹{totalExpenses.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                    </span>
+                    <div className="absolute right-4 bottom-4 text-rose-500/10">
+                      <ArrowDownRight size={32} />
+                    </div>
+                  </div>
+
+                  <div className="glass-premium rounded-2xl p-5 relative overflow-hidden">
+                    <span className="text-[9px] font-bold tracking-widest text-beige-luxury/40 uppercase block">
+                      Net Profit / Loss
+                    </span>
+                    <span className={`text-2xl font-serif font-bold block mt-2 ${netProfitLoss >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {netProfitLoss >= 0 ? '+' : ''}₹{netProfitLoss.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                    </span>
+                    <div className={`absolute right-4 bottom-4 ${netProfitLoss >= 0 ? 'text-emerald-500/10' : 'text-rose-500/10'}`}>
+                      {netProfitLoss >= 0 ? <TrendingUp size={32} /> : <TrendingDown size={32} />}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
                   {/* Ledger Table */}
                   <div className="glass-premium rounded-3xl p-6 sm:p-8 space-y-6">
                     <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
-                      Cost Items Ledger
+                      Transactions Ledger
                     </h3>
 
                     {expenses.length === 0 ? (
@@ -857,42 +921,55 @@ export default function AdminDashboard() {
                             <tr className="border-b border-white/10 text-[9px] uppercase tracking-wider text-beige-luxury/50 pb-2">
                               <th className="py-3 pr-4">Description</th>
                               <th className="py-3 px-4">Category</th>
+                              <th className="py-3 px-4">Type</th>
                               <th className="py-3 px-4">Date</th>
                               <th className="py-3 px-4 text-right">Amount</th>
                               <th className="py-3 pl-4 text-right"></th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-white/5 text-beige-luxury/80">
-                            {expenses.map((item) => (
-                              <tr key={item.id} className="hover:bg-white/[0.01]">
-                                <td className="py-3.5 pr-4 font-bold uppercase text-[11px] text-beige-luxury">
-                                  {item.description}
-                                </td>
-                                <td className="py-3.5 px-4">
-                                  <span className="text-[9px] font-bold text-gold-metallic uppercase tracking-wider bg-gold-metallic/5 border border-gold-metallic/15 px-2 py-0.5 rounded">
-                                    {item.category}
-                                  </span>
-                                </td>
-                                <td className="py-3.5 px-4 text-beige-luxury/40">
-                                  {new Date(item.date).toLocaleDateString('en-IN', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric'
-                                  })}
-                                </td>
-                                <td className="py-3.5 px-4 text-right font-bold text-gold-metallic">
-                                  ₹{parseFloat(item.amount).toLocaleString('en-IN')}
-                                </td>
-                                <td className="py-3.5 pl-4 text-right">
-                                  <button
-                                    onClick={() => handleDeleteExpense(item.id)}
-                                    className="p-1.5 hover:text-red-400 transition-colors"
-                                  >
-                                    <Trash2 size={13} />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                            {expenses.map((item) => {
+                              const isIncome = item.type === 'income'
+                              return (
+                                <tr key={item.id} className="hover:bg-white/[0.01] transition-colors">
+                                  <td className="py-3.5 pr-4 font-bold uppercase text-[10px] text-beige-luxury">
+                                    {item.description}
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className="text-[9px] font-bold text-gold-metallic uppercase tracking-wider bg-gold-metallic/5 border border-gold-metallic/15 px-2 py-0.5 rounded">
+                                      {item.category}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                                      isIncome 
+                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                    }`}>
+                                      {isIncome ? 'Income' : 'Expense'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-beige-luxury/40">
+                                    {new Date(item.date).toLocaleDateString('en-IN', {
+                                      day: '2-digit',
+                                      month: 'short',
+                                      year: 'numeric'
+                                    })}
+                                  </td>
+                                  <td className={`py-3.5 px-4 text-right font-bold ${isIncome ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    {isIncome ? '+' : '-'}₹{parseFloat(item.amount).toLocaleString('en-IN')}
+                                  </td>
+                                  <td className="py-3.5 pl-4 text-right">
+                                    <button
+                                      onClick={() => handleDeleteExpense(item.id)}
+                                      className="p-1.5 hover:text-red-400 transition-colors"
+                                    >
+                                      <Trash2 size={13} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              )
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -902,10 +979,53 @@ export default function AdminDashboard() {
                   {/* Add Expense Form Panel */}
                   <div className="glass-premium rounded-3xl p-6 sm:p-8 space-y-6">
                     <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
-                      Log Cost Item
+                      Log Transaction
                     </h3>
 
                     <form onSubmit={handleExpenseSubmit} className="space-y-5">
+                      {/* Transaction Type Toggle */}
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                          Transaction Type
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setExpenseFormData({
+                                ...expenseFormData,
+                                type: 'expense',
+                                category: 'Materials'
+                              })
+                            }}
+                            className={`py-3 rounded-xl font-bold uppercase tracking-wider text-[10px] border transition-all duration-300 ${
+                              expenseFormData.type === 'expense'
+                                ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-lg shadow-rose-500/5'
+                                : 'bg-white/5 text-beige-luxury/60 border-white/5 hover:bg-white/10'
+                            }`}
+                          >
+                            Expense
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setExpenseFormData({
+                                ...expenseFormData,
+                                type: 'income',
+                                category: 'Project Payment'
+                              })
+                            }}
+                            className={`py-3 rounded-xl font-bold uppercase tracking-wider text-[10px] border transition-all duration-300 ${
+                              expenseFormData.type === 'income'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-lg shadow-emerald-500/5'
+                                : 'bg-white/5 text-beige-luxury/60 border-white/5 hover:bg-white/10'
+                            }`}
+                          >
+                            Income
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
                           Description
@@ -917,7 +1037,11 @@ export default function AdminDashboard() {
                           onChange={(e) =>
                             setExpenseFormData({ ...expenseFormData, description: e.target.value })
                           }
-                          placeholder="e.g. Oak Veneer Slabs, Joiner wages..."
+                          placeholder={
+                            expenseFormData.type === 'income'
+                              ? "e.g. Living room layout first installment, retainer..."
+                              : "e.g. Oak Veneer Slabs, Joiner wages..."
+                          }
                           className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all"
                         />
                       </div>
@@ -934,12 +1058,23 @@ export default function AdminDashboard() {
                             }
                             className="w-full px-4 py-3 bg-charcoal-luxury border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury text-xs transition-all"
                           >
-                            <option value="Materials">Materials</option>
-                            <option value="Wages/Labor">Wages/Labor</option>
-                            <option value="Designer Fee">Designer Fee</option>
-                            <option value="Logistics">Logistics</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Studio Rent">Studio Rent</option>
+                            {expenseFormData.type === 'income' ? (
+                              <>
+                                <option value="Project Payment">Project Payment</option>
+                                <option value="Consultation Fee">Consultation Fee</option>
+                                <option value="Retainer">Retainer</option>
+                                <option value="Other Income">Other Income</option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="Materials">Materials</option>
+                                <option value="Wages/Labor">Wages/Labor</option>
+                                <option value="Designer Fee">Designer Fee</option>
+                                <option value="Logistics">Logistics</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Studio Rent">Studio Rent</option>
+                              </>
+                            )}
                           </select>
                         </div>
 

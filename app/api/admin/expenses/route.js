@@ -48,7 +48,7 @@ export async function POST(request) {
 
   try {
     const data = await request.json()
-    const { amount, category, description, date } = data
+    const { amount, category, description, date, type } = data
 
     if (!amount || !category || !description) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { 
@@ -65,7 +65,8 @@ export async function POST(request) {
           category,
           description,
           date: date || new Date().toISOString().split('T')[0],
-          user_id: auth.user.id
+          user_id: auth.user.id,
+          type: type || 'expense'
         }
       ])
       .select()
