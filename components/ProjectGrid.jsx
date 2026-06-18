@@ -63,30 +63,29 @@ export default function ProjectGrid({ filter = 'All' }) {
 
   const cardVariants = {
     hidden: { opacity: 0, y: 24, scale: 0.98 },
-    show: { 
-      opacity: 1, 
-      y: 0, 
+    show: {
+      opacity: 1,
+      y: 0,
       scale: 1,
-      transition: { 
-        duration: 0.6, 
-        ease: [0.16, 1, 0.3, 1] 
-      } 
+      transition: {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1]
+      }
     }
   }
 
   return (
     <div className="space-y-16">
       {/* Responsive Grid Layout */}
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto"
       >
         <AnimatePresence mode="popLayout">
-          {displayedProjects.map((project, index) => {
-            // Masonry Feel aspect ratios while maintaining column alignment
-            const aspectClass = index % 3 === 1 ? 'aspect-[3/4]' : 'aspect-[4/3]'
+          {displayedProjects.map((project) => {
+            const aspectClass = 'aspect-[1/1]'
 
             return (
               <motion.div
@@ -98,7 +97,7 @@ export default function ProjectGrid({ filter = 'All' }) {
               >
                 <Link href={`/projects/${project.id}`} className="block h-full w-full">
                   <div className={`relative w-full ${aspectClass} overflow-hidden bg-charcoal/5`}>
-                    
+
                     {/* Project Image with Zoom Transition */}
                     <Image
                       src={project.image}
@@ -111,7 +110,7 @@ export default function ProjectGrid({ filter = 'All' }) {
 
                     {/* Dark Hover Overlay */}
                     <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex flex-col justify-end p-6 sm:p-8">
-                      
+
                       {/* Project Card Info */}
                       <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] space-y-4">
                         <div>
@@ -119,7 +118,7 @@ export default function ProjectGrid({ filter = 'All' }) {
                           <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.25em] text-gold font-bold mb-1">
                             <Tag size={10} /> {project.category}
                           </span>
-                          
+
                           {/* Project Name */}
                           <h3 className="text-xl sm:text-2xl font-serif text-white font-black leading-tight">
                             {project.title}
