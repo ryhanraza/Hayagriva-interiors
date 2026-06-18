@@ -15,6 +15,12 @@ function AdminLoginForm() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
+    // Clear stale session on mount to prevent invalid refresh token requests
+    insforgeClient.auth.signOut().catch(() => {})
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('hayagriva_admin_access_token')
+    }
+
     // Show query parameter error if any
     const errParam = searchParams.get('error')
     if (errParam === 'unauthorized') {

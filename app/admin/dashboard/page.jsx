@@ -78,6 +78,10 @@ export default function AdminDashboard() {
       try {
         const { data, error } = await insforgeClient.auth.getCurrentUser()
         if (error || !data?.user) {
+          await insforgeClient.auth.signOut().catch(() => {})
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem('hayagriva_admin_access_token')
+          }
           router.replace('/admin/login')
           return
         }
