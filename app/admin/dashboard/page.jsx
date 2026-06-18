@@ -76,9 +76,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function checkSession() {
       try {
+        if (typeof window !== 'undefined') {
+          const storedToken = window.localStorage.getItem('hayagriva_admin_access_token')
+          if (storedToken) {
+            insforgeClient.setAccessToken(storedToken)
+          }
+        }
+
         const { data, error } = await insforgeClient.auth.getCurrentUser()
         if (error || !data?.user) {
-          await insforgeClient.auth.signOut().catch(() => {})
+          await insforgeClient.auth.signOut().catch(() => { })
           if (typeof window !== 'undefined') {
             window.localStorage.removeItem('hayagriva_admin_access_token')
           }
@@ -96,8 +103,7 @@ export default function AdminDashboard() {
 
         setUser(data.user)
         setAuthLoading(false)
-        const token = insforgeClient.auth?.tokenManager?.getAccessToken?.()
-        fetchDashboardData(token)
+        await fetchDashboardData()
       } catch (err) {
         console.error('Session verification error:', err)
         router.replace('/admin/login')
@@ -108,10 +114,10 @@ export default function AdminDashboard() {
 
   // Get authentication token helper
   async function getHeaders() {
-    let accessToken = insforgeClient.auth?.tokenManager?.getAccessToken?.()
+    let accessToken = undefined
 
-    if (!accessToken && typeof window !== 'undefined') {
-      accessToken = window.localStorage.getItem('hayagriva_admin_access_token')
+    if (typeof window !== 'undefined') {
+      accessToken = window.localStorage.getItem('hayagriva_admin_access_token') || undefined
       if (accessToken) {
         insforgeClient.setAccessToken(accessToken)
       }
@@ -133,13 +139,11 @@ export default function AdminDashboard() {
   }
 
   // Fetch all dashboard data from API routes
-  async function fetchDashboardData(passedToken) {
+  async function fetchDashboardData() {
     setLoadingData(true)
     setErrorMsg('')
     try {
-      const headers = passedToken
-        ? { 'Content-Type': 'application/json', Authorization: `Bearer ${passedToken}` }
-        : await getHeaders()
+      const headers = await getHeaders()
 
       // Fetch Contacts
       const contactsRes = await fetch('/api/admin/contacts', {
@@ -314,21 +318,45 @@ export default function AdminDashboard() {
     setFormSubmitting(true)
     setErrorMsg('')
 
+    const amountValue = parseFloat(expenseFormData.amount)
+    if (
+      !expenseFormData.description?.trim() ||
+      !expenseFormData.category?.trim() ||
+      expenseFormData.amount === '' ||
+      Number.isNaN(amountValue) ||
+      amountValue < 0
+    ) {
+      setErrorMsg('Please enter a valid description, category, and amount.')
+      setFormSubmitting(false)
+      return
+    }
+
     try {
       const headers = await getHeaders()
       const res = await fetch('/api/admin/expenses', {
         method: 'POST',
         headers,
-        body: JSON.stringify(expenseFormData),
+        body: JSON.stringify({
+          ...expenseFormData,
+          amount: amountValue
+        }),
         credentials: 'include'
       })
 
       const result = await res.json()
       if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          setErrorMsg('Session expired or unauthorized. Please sign in again.')
+          await insforgeClient.auth.signOut().catch(() => { })
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem('hayagriva_admin_access_token')
+          }
+          router.replace('/admin/login')
+          return
+        }
         throw new Error(result.error || 'Failed to add expense')
       }
 
-      // Reset Form
       setExpenseFormData({
         amount: '',
         category: expenseFormData.type === 'income' ? 'Project Payment' : 'Materials',
@@ -336,7 +364,7 @@ export default function AdminDashboard() {
         date: new Date().toISOString().split('T')[0],
         type: expenseFormData.type
       })
-      fetchDashboardData()
+      await fetchDashboardData()
     } catch (err) {
       setErrorMsg(err.message)
     } finally {
@@ -362,7 +390,7 @@ export default function AdminDashboard() {
         throw new Error(result.error || 'Failed to delete expense')
       }
 
-      fetchDashboardData()
+      await fetchDashboardData()
     } catch (err) {
       setErrorMsg(err.message)
     }
@@ -386,16 +414,31 @@ export default function AdminDashboard() {
     setProjectForm('edit')
   }
 
+  const INCOME_CATEGORIES = new Set([
+    'Project Payment',
+    'Consultation Fee',
+    'Retainer',
+    'Other Income'
+  ])
+
+  const getTransactionType = (item) => {
+    if (item?.type === 'income') return 'income'
+    if (item?.type === 'expense') return 'expense'
+    const category = item?.category?.trim()
+    return INCOME_CATEGORIES.has(category) ? 'income' : 'expense'
+  }
+
   // Calculations for Overview Stats
-  const expenseItems = expenses.filter(item => item.type === 'expense' || !item.type)
-  const incomeItems = expenses.filter(item => item.type === 'income')
+  const expenseItems = expenses.filter(item => getTransactionType(item) === 'expense')
+  const incomeItems = expenses.filter(item => getTransactionType(item) === 'income')
 
   const totalExpenses = expenseItems.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0)
   const totalIncome = incomeItems.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0)
   const netProfitLoss = totalIncome - totalExpenses
 
   const categoryExpenses = expenseItems.reduce((acc, item) => {
-    acc[item.category] = (acc[item.category] || 0) + parseFloat(item.amount || 0)
+    const category = item.category || 'Uncategorized'
+    acc[category] = (acc[category] || 0) + parseFloat(item.amount || 0)
     return acc
   }, {})
 
@@ -945,11 +988,10 @@ export default function AdminDashboard() {
                                     </span>
                                   </td>
                                   <td className="py-3.5 px-4">
-                                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
-                                      isIncome 
-                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                                    }`}>
+                                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${isIncome
+                                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                      : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                      }`}>
                                       {isIncome ? 'Income' : 'Expense'}
                                     </span>
                                   </td>
@@ -1002,11 +1044,10 @@ export default function AdminDashboard() {
                                 category: 'Materials'
                               })
                             }}
-                            className={`py-3 rounded-xl font-bold uppercase tracking-wider text-[10px] border transition-all duration-300 ${
-                              expenseFormData.type === 'expense'
-                                ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-lg shadow-rose-500/5'
-                                : 'bg-white/5 text-beige-luxury/60 border-white/5 hover:bg-white/10'
-                            }`}
+                            className={`py-3 rounded-xl font-bold uppercase tracking-wider text-[10px] border transition-all duration-300 ${expenseFormData.type === 'expense'
+                              ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-lg shadow-rose-500/5'
+                              : 'bg-white/5 text-beige-luxury/60 border-white/5 hover:bg-white/10'
+                              }`}
                           >
                             Expense
                           </button>
@@ -1019,11 +1060,10 @@ export default function AdminDashboard() {
                                 category: 'Project Payment'
                               })
                             }}
-                            className={`py-3 rounded-xl font-bold uppercase tracking-wider text-[10px] border transition-all duration-300 ${
-                              expenseFormData.type === 'income'
-                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-lg shadow-emerald-500/5'
-                                : 'bg-white/5 text-beige-luxury/60 border-white/5 hover:bg-white/10'
-                            }`}
+                            className={`py-3 rounded-xl font-bold uppercase tracking-wider text-[10px] border transition-all duration-300 ${expenseFormData.type === 'income'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-lg shadow-emerald-500/5'
+                              : 'bg-white/5 text-beige-luxury/60 border-white/5 hover:bg-white/10'
+                              }`}
                           >
                             Income
                           </button>
