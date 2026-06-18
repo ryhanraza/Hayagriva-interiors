@@ -5,7 +5,10 @@ import ProjectDetailClient from '../../../components/ProjectDetailClient'
 export const dynamic = 'force-dynamic'
 
 export default async function ProjectDetailPage({ params }) {
-  const { id } = params
+  const resolvedParams = await params
+  const { id } = resolvedParams
+  const searchId = Number(id)
+  const projectId = Number.isNaN(searchId) ? id : searchId
 
   let project = null
 
@@ -13,7 +16,7 @@ export default async function ProjectDetailPage({ params }) {
     const { data, error } = await insforge.database
       .from('projects')
       .select('*')
-      .eq('id', id)
+      .eq('id', projectId)
       .maybeSingle()
 
     if (!error && data) {
