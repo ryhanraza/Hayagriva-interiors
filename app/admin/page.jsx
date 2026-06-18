@@ -11,6 +11,13 @@ export default function AdminIndex() {
   useEffect(() => {
     async function checkAuth() {
       try {
+        if (typeof window !== 'undefined') {
+          const storedToken = window.localStorage.getItem('hayagriva_admin_access_token')
+          if (storedToken) {
+            insforgeClient.setAccessToken(storedToken)
+          }
+        }
+
         const { data, error } = await insforgeClient.auth.getCurrentUser()
         if (error || !data?.user) {
           await insforgeClient.auth.signOut().catch(() => {})
@@ -19,6 +26,12 @@ export default function AdminIndex() {
           }
           router.replace('/admin/login')
           return
+        }
+
+        // Keep localStorage access token in sync with refreshed session token
+        const currentToken = insforgeClient.auth.tokenManager.getAccessToken()
+        if (currentToken && typeof window !== 'undefined') {
+          window.localStorage.setItem('hayagriva_admin_access_token', currentToken)
         }
 
         // Restrict to authorized admin email

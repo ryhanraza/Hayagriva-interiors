@@ -93,6 +93,12 @@ export default function AdminDashboard() {
           return
         }
 
+        // Keep localStorage access token in sync with refreshed session token
+        const currentToken = insforgeClient.auth.tokenManager.getAccessToken()
+        if (currentToken && typeof window !== 'undefined') {
+          window.localStorage.setItem('hayagriva_admin_access_token', currentToken)
+        }
+
         const allowedEmails = ['interiorsbyhayagriva@gmail.com', 'interiorsbyhayagriya@gmail.com']
         const userEmail = data.user.email?.toLowerCase().trim()
         if (!userEmail || !allowedEmails.includes(userEmail)) {
@@ -114,19 +120,25 @@ export default function AdminDashboard() {
 
   // Get authentication token helper
   async function getHeaders() {
-    let accessToken = undefined
+    // Prefer the active in-memory token from the client
+    let accessToken = insforgeClient.auth.tokenManager.getAccessToken()
 
-    if (typeof window !== 'undefined') {
+    // Fall back to localStorage if in-memory token is not yet set
+    if (!accessToken && typeof window !== 'undefined') {
       accessToken = window.localStorage.getItem('hayagriva_admin_access_token') || undefined
       if (accessToken) {
         insforgeClient.setAccessToken(accessToken)
       }
     }
 
+    // If still no token, try to getCurrentUser to trigger automatic cookie-based refresh
     if (!accessToken) {
       const { data, error } = await insforgeClient.auth.getCurrentUser()
       if (!error && data?.user) {
-        accessToken = insforgeClient.auth?.tokenManager?.getAccessToken?.()
+        accessToken = insforgeClient.auth.tokenManager.getAccessToken()
+        if (accessToken && typeof window !== 'undefined') {
+          window.localStorage.setItem('hayagriva_admin_access_token', accessToken)
+        }
       }
     }
 
