@@ -520,8 +520,8 @@ export default function Home() {
       <section className="py-28 px-6 bg-warmcream">
         <div className="max-w-6xl mx-auto space-y-16">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">Kind Words</span>
-            <h2 className="text-3xl sm:text-5xl font-serif text-charcoal font-bold leading-tight">Client Success Stories</h2>
+            <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">Google Reviews</span>
+            <h2 className="text-3xl sm:text-5xl font-serif text-charcoal font-bold leading-tight">What Our Clients Say</h2>
           </div>
           
           <HomeTestimonials />

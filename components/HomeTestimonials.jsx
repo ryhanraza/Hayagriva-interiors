@@ -4,6 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react'
 import Image from 'next/image'
 
+function GoogleG({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+      <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+      <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+      <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
+    </svg>
+  )
+}
+
 const testimonials = [
   {
     id: 1,
@@ -92,15 +103,19 @@ export default function HomeTestimonials() {
         {/* Subtle Decorative Background Glow */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl pointer-events-none" />
         
-        {/* Quote & Stars */}
+        {/* Quote & Google Badge */}
         <div className="flex justify-between items-start mb-6 relative z-10">
           <div className="text-gold/25">
             <Quote size={48} fill="currentColor" />
           </div>
-          <div className="flex gap-1 text-gold">
-            {[...Array(testimonials[i].rating)].map((_, idx) => (
-              <Star key={idx} size={16} fill="currentColor" className="stroke-gold" />
-            ))}
+          <div className="flex items-center gap-2 bg-warmcream border border-charcoal/10 rounded-full pl-2 pr-3 py-1.5 shadow-sm">
+            <GoogleG size={20} />
+            <div className="flex gap-0.5 text-gold">
+              {[...Array(5)].map((_, idx) => (
+                <Star key={idx} size={12} fill="currentColor" className="stroke-gold" />
+              ))}
+            </div>
+            <span className="text-[11px] font-bold text-charcoal ml-1">5.0</span>
           </div>
         </div>
 
@@ -135,7 +150,14 @@ export default function HomeTestimonials() {
             </div>
             <div>
               <div className="font-bold text-charcoal font-serif text-base tracking-wide">{testimonials[i].author}</div>
-              <div className="text-[10px] text-gold-dark uppercase tracking-widest font-bold mt-0.5">{testimonials[i].role}</div>
+              <div className="text-[10px] text-gold-dark uppercase tracking-widest font-bold mt-0.5 flex items-center gap-1.5">
+                <span>{testimonials[i].role}</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] text-charcoal/50 mt-0.5">
+                <span>via</span>
+                <GoogleG size={11} />
+                <span className="font-semibold">Google</span>
+              </div>
             </div>
           </div>
 
