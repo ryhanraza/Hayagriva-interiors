@@ -21,7 +21,17 @@ import {
   BookOpen,
   Wrench,
   Truck,
-  Heart
+  Heart,
+  ClipboardList,
+  PencilRuler,
+  Palette,
+  Hammer,
+  KeyRound,
+  Clock,
+  ShieldCheck,
+  Users,
+  Headphones,
+  ChevronRight as ChevronRightSmall
 } from 'lucide-react'
 
 // Import custom components
@@ -103,27 +113,41 @@ export default function Home() {
     {
       step: '01',
       title: 'Consultation',
-      desc: 'We map out your space, styles, and alignments over coffee.',
-      icon: BookOpen
+      desc: 'We understand your needs, space, and budget to craft a clear vision for your project.',
+      icon: ClipboardList
     },
     {
       step: '02',
-      title: 'Design',
-      desc: 'Our studio constructs detailed 3D walk-throughs & material boards.',
-      icon: Sparkles
+      title: 'Design & Planning',
+      desc: 'We create detailed layouts, 3D designs, and execution-ready plans tailored to you.',
+      icon: PencilRuler
     },
     {
       step: '03',
-      title: 'Execution',
-      desc: 'Craftsmen engineer custom modular woodwork under strict supervision.',
-      icon: Wrench
+      title: 'Material Selection',
+      desc: 'Choose premium finishes, colors, and materials that match your aesthetic perfectly.',
+      icon: Palette
     },
     {
       step: '04',
-      title: 'Delivery',
-      desc: 'Rigid quality checks culminate in a seamless turnkey handover.',
-      icon: Truck
+      title: 'Execution',
+      desc: 'Our skilled craftsmen bring the design to life with precision and supervision.',
+      icon: Hammer
+    },
+    {
+      step: '05',
+      title: 'Handover',
+      desc: 'Final delivery with rigorous quality assurance and a flawless, ready-to-live space.',
+      icon: KeyRound
     }
+  ]
+
+  // Highlight Features
+  const highlights = [
+    { title: 'On-Time Delivery', desc: 'Projects delivered as promised', icon: Clock },
+    { title: 'Quality Assurance', desc: 'Rigorous checks at every stage', icon: ShieldCheck },
+    { title: 'Expert Team', desc: 'Skilled designers & craftsmen', icon: Users },
+    { title: 'End-to-End Support', desc: 'With you from concept to handover', icon: Headphones }
   ]
 
   // Room-wise Designs
@@ -403,44 +427,103 @@ export default function Home() {
       </section>
 
       {/* 4. "HOW IT WORKS" SECTION */}
-      <section className="py-28 bg-white border-y border-charcoal/5">
-        <div className="max-w-6xl mx-auto px-6">
+      <section className="py-28 bg-white border-y border-charcoal/5 relative overflow-hidden">
+        {/* Soft ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gold/5 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          {/* Heading */}
           <div className="text-center max-w-2xl mx-auto mb-24 space-y-3">
             <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">The Turnkey Workflow</span>
             <h2 className="text-3xl sm:text-5xl font-serif text-charcoal font-bold leading-tight">Our Seamless Design Process</h2>
             <p className="text-charcoal/60 text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
-              We guide you from initial pencil sketches to finalized structural joinery and styling detail.
+              A refined, transparent journey from the first conversation to the final handover — crafted with care at every step.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 relative">
-            {/* Connecting dashed line in desktop grid */}
-            <div className="hidden lg:block absolute top-12 left-1/8 right-1/8 h-[1.5px] border-t-2 border-dashed border-gold/20 z-0" />
-            
-            {processSteps.map((item, idx) => {
-              const Icon = item.icon
-              return (
-                <motion.div
-                  key={item.step}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.8, delay: idx * 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative z-10 text-center flex flex-col items-center px-4 group"
-                >
-                  {/* Step bubble */}
-                  <div className="w-16 h-16 rounded-full bg-warmcream text-gold border-2 border-gold/20 font-bold text-lg flex items-center justify-center mb-6 shadow-sm group-hover:bg-gold group-hover:text-white group-hover:border-gold transition-all duration-500 relative">
-                    <Icon size={20} />
-                    <span className="absolute -top-1 -right-1 w-6 h-6 bg-charcoal text-white rounded-full text-[10px] flex items-center justify-center font-semibold border border-white">
-                      {item.step}
-                    </span>
-                  </div>
-                  <h4 className="text-lg font-bold text-charcoal font-serif mb-2">{item.title}</h4>
-                  <p className="text-xs sm:text-sm text-charcoal/60 leading-relaxed max-w-xs">{item.desc}</p>
-                </motion.div>
-              )
-            })}
+          {/* Step Timeline */}
+          <div className="relative">
+            {/* Connecting line (desktop) */}
+            <div className="hidden lg:block absolute top-10 left-[10%] right-[10%] h-[1.5px] bg-gradient-to-r from-transparent via-gold/30 to-transparent z-0" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-4 relative z-10">
+              {processSteps.map((item, idx) => {
+                const Icon = item.icon
+                const isLast = idx === processSteps.length - 1
+                return (
+                  <motion.div
+                    key={item.step}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.7, delay: idx * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative flex flex-col items-center text-center group"
+                  >
+                    {/* Circular icon */}
+                    <div className="relative mb-6">
+                      <div className="w-20 h-20 rounded-full bg-warmcream border border-gold/20 flex items-center justify-center text-gold shadow-sm group-hover:shadow-[0_12px_40px_-8px_rgba(197,162,83,0.45)] group-hover:-translate-y-2 group-hover:border-gold group-hover:bg-gold group-hover:text-white transition-all duration-500">
+                        <Icon size={26} strokeWidth={1.6} />
+                      </div>
+                      {/* Gold step badge */}
+                      <span className="absolute -top-2 -right-2 w-8 h-8 bg-charcoal text-gold rounded-full text-[11px] font-bold flex items-center justify-center border-2 border-gold/40 shadow-md">
+                        {item.step}
+                      </span>
+                      {/* Arrow indicator (desktop, except last) */}
+                      {!isLast && (
+                        <div className="hidden lg:flex absolute top-1/2 -right-[calc(50%+8px)] -translate-y-1/2 text-gold/40 z-20">
+                          <ChevronRightSmall size={18} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Title + description card */}
+                    <div className="px-2">
+                      <h4 className="text-base sm:text-lg font-serif font-bold text-charcoal mb-2 group-hover:text-gold-dark transition-colors duration-300">
+                        {item.title}
+                      </h4>
+                      <p className="text-[11px] sm:text-xs text-charcoal/55 leading-relaxed max-w-[200px]">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
           </div>
+
+          {/* Highlight Features Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="mt-28 pt-16 border-t border-charcoal/5"
+          >
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
+              {highlights.map((item, idx) => {
+                const Icon = item.icon
+                return (
+                  <motion.div
+                    key={item.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                    whileHover={{ y: -6 }}
+                    className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-6 rounded-2xl bg-warmcream border border-gold/15 hover:border-gold/40 hover:shadow-[0_12px_40px_-12px_rgba(197,162,83,0.4)] transition-all duration-500"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-white border border-gold/20 text-gold flex items-center justify-center shrink-0 shadow-sm group-hover:bg-gold group-hover:text-white transition-all duration-300">
+                      <Icon size={20} strokeWidth={1.7} />
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <h5 className="text-sm font-bold text-charcoal font-serif">{item.title}</h5>
+                      <p className="text-[11px] text-charcoal/50 mt-1 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </motion.div>
         </div>
       </section>
 
