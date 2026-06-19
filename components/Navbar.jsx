@@ -31,8 +31,7 @@ export default function Navbar() {
     { name: 'Home', href: '/' },
     { name: 'About Us', href: '/about' },
     { name: 'Services', href: '/services' },
-    { name: 'Projects', href: '/portfolio' },
-    { name: 'Blog', href: '#' },
+    { name: 'Portfolio', href: '/portfolio' },
     { name: 'Contact Us', href: '/contact' }
   ]
 
@@ -63,6 +62,18 @@ export default function Navbar() {
           <nav className="hidden md:flex gap-6 lg:gap-8 items-center">
             {links.map((link) => {
               const isActive = pathname === link.href
+              const isContact = link.href === '/contact'
+              if (isContact) {
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className="px-5 py-2.5 bg-theme-gold hover:bg-white text-theme-black font-bold text-[11px] uppercase tracking-wider rounded transition-all duration-300 shadow-md shadow-theme-gold/10"
+                  >
+                    {link.name}
+                  </Link>
+                )
+              }
               return (
                 <Link
                   key={link.name}
@@ -82,12 +93,6 @@ export default function Navbar() {
                 </Link>
               )
             })}
-            <Link
-              href="/contact"
-              className="px-5 py-2.5 bg-theme-gold hover:bg-white text-theme-black font-bold text-[11px] uppercase tracking-wider rounded transition-all duration-300 shadow-md shadow-theme-gold/10"
-            >
-              Get a Quote
-            </Link>
           </nav>
 
           {/* Hamburger Menu Trigger */}
@@ -134,6 +139,19 @@ export default function Navbar() {
             <div className="flex flex-col justify-center gap-6 my-auto">
               {links.map((link) => {
                 const isActive = pathname === link.href
+                const isContact = link.href === '/contact'
+                if (isContact) {
+                  return (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className="text-sm font-bold uppercase tracking-wider text-center py-3 bg-theme-gold text-theme-black rounded transition-all duration-300"
+                    >
+                      {link.name}
+                    </Link>
+                  )
+                }
                 return (
                   <Link
                     key={link.name}
@@ -149,16 +167,6 @@ export default function Navbar() {
               })}
             </div>
 
-            {/* Mobile Menu CTA */}
-            <div className="pb-8">
-              <Link
-                href="/contact"
-                onClick={() => setOpen(false)}
-                className="w-full block text-center py-4 bg-theme-gold hover:bg-white text-theme-black text-xs font-bold uppercase tracking-widest rounded transition-all duration-300 shadow-lg shadow-theme-gold/20"
-              >
-                Get a Quote
-              </Link>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
