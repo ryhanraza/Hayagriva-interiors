@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { Instagram, Youtube, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
+import { Instagram, Youtube, Linkedin, Facebook, Mail, Phone, MapPin } from 'lucide-react'
 
 function WhatsAppIcon({ size = 16 }) {
   return (
@@ -90,6 +90,9 @@ export default function Footer() {
             </a>
             <a href="https://www.linkedin.com/company/hayagriva-interiors/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="LinkedIn">
               <Linkedin size={16} />
+            </a>
+            <a href="https://www.facebook.com/share/18cmqePWNS/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Facebook">
+              <Facebook size={16} />
             </a>
             <a href="https://wa.me/919573178887" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="WhatsApp">
               <WhatsAppIcon size={16} />
