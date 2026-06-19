@@ -139,25 +139,12 @@ export default function HomeTestimonials() {
         {/* Author Details & Buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mt-8 pt-6 border-t border-charcoal/10 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-gold/40 shrink-0 bg-gold/10">
-              <Image 
-                src={testimonials[i].image}
-                alt={testimonials[i].author}
-                fill
-                className="object-cover"
-                sizes="48px"
-              />
+            <div className="w-12 h-12 rounded-full shrink-0 bg-gradient-to-br from-gold/30 to-gold-dark/20 border-2 border-gold/40 flex items-center justify-center">
+              <Quote size={20} className="text-gold-dark" fill="currentColor" />
             </div>
             <div>
               <div className="font-bold text-charcoal font-serif text-base tracking-wide">{testimonials[i].author}</div>
-              <div className="text-[10px] text-gold-dark uppercase tracking-widest font-bold mt-0.5 flex items-center gap-1.5">
-                <span>{testimonials[i].role}</span>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-charcoal/50 mt-0.5">
-                <span>via</span>
-                <GoogleG size={11} />
-                <span className="font-semibold">Google</span>
-              </div>
+              <div className="text-[10px] text-charcoal/60 mt-0.5">{testimonials[i].role}</div>
             </div>
           </div>
 
