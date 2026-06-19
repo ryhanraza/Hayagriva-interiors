@@ -103,7 +103,7 @@ export default function Contact() {
                   <div className="text-[9px] text-beige/40 uppercase tracking-widest">Click to navigate on Google Maps</div>
                 </div>
                 <a
-                  href="https://www.google.com/maps/search/?api=1&query=second%20floor%2C%20DR%20DEEN%20COMPLEX%2C%2051-15-1%2F6%2C%20opposite%20to%20Tech%20Mahindra%2C%20Satyam%20Junction%2C%20KRANTHI%20NAGAR%2C%20Maddilapalem%2C%20Visakhapatnam%2C%20Andhra%20Pradesh%20530013"
+                  href="https://www.google.com/maps/search/?api=1&query=Hayagriva%20Interiors%2C%20Maddilapalem%2C%20Visakhapatnam"
                   target="_blank"
                   rel="noreferrer"
                   className="absolute inset-0 z-20 cursor-pointer"
