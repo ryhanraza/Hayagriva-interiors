@@ -16,8 +16,13 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 mb-16">
         {/* Branding Column */}
         <div className="md:col-span-5 space-y-6">
-          <Link href="/" className="font-serif text-2xl tracking-widest font-bold uppercase block text-beige-luxury">
-            Hayagriva Interiors<span className="text-gold-metallic">.</span>
+          <Link href="/" className="block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo-light.png"
+              alt="Hayagriva Interiors"
+              className="h-12 w-auto"
+            />
           </Link>
           <p className="text-beige-luxury/60 text-xs sm:text-sm leading-relaxed max-w-sm">
             Bespoke interior design studio crafting timeless residential and commercial spaces. Fusing traditional craftsmanship with contemporary aesthetics.

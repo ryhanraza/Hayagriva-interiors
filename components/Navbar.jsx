@@ -48,10 +48,13 @@ export default function Navbar() {
       >
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="group flex items-center gap-2">
-            <span className="font-serif text-base sm:text-lg md:text-2xl tracking-widest text-beige-luxury group-hover:text-gold-metallic transition-colors font-bold uppercase">
-              Hayagriva Interiors<span className="text-gold-metallic font-normal">.</span>
-            </span>
+          <Link href="/" className="group flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo-light.png"
+              alt="Hayagriva Interiors"
+              className="h-8 sm:h-9 md:h-11 w-auto transition-all duration-300 group-hover:opacity-90"
+            />
           </Link>
 
           {/* Desktop Navigation */}
