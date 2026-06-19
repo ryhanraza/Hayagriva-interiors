@@ -55,21 +55,24 @@ const blogPosts = [
     category: 'Aesthetics',
     date: 'June 12, 2026',
     image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop',
-    desc: 'Discover how to balance raw Scandinavian warmth with quiet Japanese simplicity to create an uncluttered, modern sanctuary.'
+    desc: 'Discover how to balance raw Scandinavian warmth with quiet Japanese simplicity to create an uncluttered, modern sanctuary.',
+    slug: 'art-of-japandi-minimalist-living'
   },
   {
     title: 'Ergonomic Modular Kitchen Guidelines',
     category: 'Engineering',
     date: 'May 28, 2026',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop',
-    desc: 'An in-depth look at counter heights, modular layout workflows, soft-close hardware configurations, and material selections.'
+    desc: 'An in-depth look at counter heights, modular layout workflows, soft-close hardware configurations, and material selections.',
+    slug: 'ergonomic-modular-kitchen-guidelines'
   },
   {
     title: 'Layered Illumination for Private Suites',
     category: 'Lighting',
     date: 'April 15, 2026',
     image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop',
-    desc: 'How to configure layered bedroom lighting using concealed warm coves, task spots, and smart dimming transitions.'
+    desc: 'How to configure layered bedroom lighting using concealed warm coves, task spots, and smart dimming transitions.',
+    slug: 'layered-illumination-private-suites'
   }
 ]
 
@@ -221,7 +224,7 @@ export default function About() {
       </section>
 
       {/* 4. DESIGN JOURNAL / BLOG SECTION (REPLACES TEAM & STATS) */}
-      <section className="py-24 px-6 max-w-7xl mx-auto border-t border-charcoal/5">
+      <section id="journal" className="py-24 px-6 max-w-7xl mx-auto border-t border-charcoal/5">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">DESIGN JOURNAL</span>
           <h2 className="text-3xl sm:text-4xl font-serif text-charcoal font-bold leading-tight">Bespoke Interior Insights</h2>
@@ -232,48 +235,49 @@ export default function About() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {blogPosts.map((post, idx) => (
-            <motion.div
-              key={post.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="group flex flex-col justify-between bg-white rounded-2xl overflow-hidden border border-charcoal/5 hover:border-gold/30 hover:shadow-lg transition-all duration-500 h-[460px]"
-            >
-              <div className="relative h-56 w-full overflow-hidden bg-softgrey/10 shrink-0">
-                <Image
-                  src={post.image}
-                  alt={post.title}
-                  fill
-                  className="object-cover transition-transform duration-[1.8s] group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-                <div className="absolute top-4 left-4 z-20">
-                  <span className="text-[9px] font-bold uppercase tracking-widest bg-charcoal/80 backdrop-blur-md text-gold px-3 py-1.5 rounded-full border border-white/5">
-                    {post.category}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div className="space-y-3 text-left">
-                  <h4 className="text-lg font-bold font-serif text-charcoal group-hover:text-gold-dark transition-colors duration-300 line-clamp-2">
-                    {post.title}
-                  </h4>
-                  <p className="text-xs text-charcoal/60 leading-relaxed line-clamp-3">
-                    {post.desc}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-charcoal/5 flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-charcoal/40 group-hover:text-gold transition-colors duration-300">
-                  <span>{post.date}</span>
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <span>Read Article</span>
-                    <ArrowRight size={10} />
+            <Link key={post.slug} href={`/blog/${post.slug}`} className="block">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                className="group flex flex-col justify-between bg-white rounded-2xl overflow-hidden border border-charcoal/5 hover:border-gold/30 hover:shadow-lg transition-all duration-500 h-[460px]"
+              >
+                <div className="relative h-56 w-full overflow-hidden bg-softgrey/10 shrink-0">
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-[1.8s] group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  <div className="absolute top-4 left-4 z-20">
+                    <span className="text-[9px] font-bold uppercase tracking-widest bg-charcoal/80 backdrop-blur-md text-gold px-3 py-1.5 rounded-full border border-white/5">
+                      {post.category}
+                    </span>
                   </div>
                 </div>
-              </div>
-            </motion.div>
+
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div className="space-y-3 text-left">
+                    <h4 className="text-lg font-bold font-serif text-charcoal group-hover:text-gold-dark transition-colors duration-300 line-clamp-2">
+                      {post.title}
+                    </h4>
+                    <p className="text-xs text-charcoal/60 leading-relaxed line-clamp-3">
+                      {post.desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t border-charcoal/5 flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-charcoal/40 group-hover:text-gold transition-colors duration-300">
+                    <span>{post.date}</span>
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <span>Read Article</span>
+                      <ArrowRight size={10} />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </Link>
           ))}
         </div>
       </section>

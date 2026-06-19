@@ -29,9 +29,11 @@ export default function Navbar() {
 
   const links = [
     { name: 'Home', href: '/' },
-    { name: 'Portfolio', href: '/portfolio' },
+    { name: 'About Us', href: '/about' },
     { name: 'Services', href: '/services' },
-    { name: 'About Us', href: '/about' }
+    { name: 'Projects', href: '/portfolio' },
+    { name: 'Blog', href: '#' },
+    { name: 'Contact Us', href: '/contact' }
   ]
 
   const isDarkHeroPage = pathname === '/' || pathname === '/about'
@@ -42,7 +44,7 @@ export default function Navbar() {
       <header
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
           showDarkNavbar 
-            ? 'bg-charcoal-luxury/90 backdrop-blur-lg shadow-xl border-b border-white/5 py-3.5' 
+            ? 'bg-theme-black/95 backdrop-blur-lg shadow-xl border-b border-white/5 py-4' 
             : 'bg-transparent py-6'
         }`}
       >
@@ -51,29 +53,29 @@ export default function Navbar() {
           <Link href="/" className="group flex items-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/logo-light.png"
+              src="/images/logo-nav.png?v=2"
               alt="Hayagriva Interiors"
-              className="h-8 sm:h-9 md:h-11 w-auto transition-all duration-300 group-hover:opacity-90"
+              className="h-8 sm:h-9 md:h-10 w-auto transition-all duration-300 group-hover:opacity-90"
             />
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex gap-8 items-center">
+          <nav className="hidden md:flex gap-6 lg:gap-8 items-center">
             {links.map((link) => {
               const isActive = pathname === link.href
               return (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-xs font-semibold uppercase tracking-widest hover:text-gold-metallic transition-colors relative py-1 transition-all ${
-                    isActive ? 'text-gold-metallic' : 'text-beige-luxury/70'
+                  className={`text-[11px] font-semibold uppercase tracking-wider hover:text-theme-gold transition-colors relative py-1 transition-all ${
+                    isActive ? 'text-theme-gold' : 'text-theme-offwhite/80'
                   }`}
                 >
                   {link.name}
                   {isActive && (
                     <motion.span
                       layoutId="navUnderline"
-                      className="absolute bottom-0 left-0 w-full h-[2px] bg-gold-metallic"
+                      className="absolute bottom-0 left-0 w-full h-[2px] bg-theme-gold"
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -82,16 +84,15 @@ export default function Navbar() {
             })}
             <Link
               href="/contact"
-              className="px-6 py-2.5 bg-white/10 hover:bg-gold-metallic text-beige-luxury hover:text-black-luxury border border-white/15 hover:border-gold-metallic text-xs font-semibold uppercase tracking-widest rounded-full transition-all duration-500 flex items-center gap-2 shadow-sm"
+              className="px-5 py-2.5 bg-theme-gold hover:bg-white text-theme-black font-bold text-[11px] uppercase tracking-wider rounded transition-all duration-300 shadow-md shadow-theme-gold/10"
             >
-              <span>Contact</span>
-              <ArrowRight size={12} />
+              Get a Quote
             </Link>
           </nav>
 
           {/* Hamburger Menu Trigger */}
           <button
-            className="md:hidden text-beige-luxury focus:outline-none p-1 hover:text-gold-metallic transition-colors"
+            className="md:hidden text-theme-offwhite focus:outline-none p-1 hover:text-theme-gold transition-colors"
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
@@ -108,28 +109,54 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-x-0 top-[70px] z-40 bg-black-luxury/95 backdrop-blur-xl border-b border-white/5 shadow-2xl px-6 py-8 flex flex-col gap-6 md:hidden"
+            className="fixed inset-0 z-50 bg-theme-black px-6 py-6 flex flex-col justify-between md:hidden"
           >
-            <div className="flex flex-col gap-4">
+            {/* Mobile Menu Header */}
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/logo-nav.png"
+                  alt="Hayagriva Interiors"
+                  className="h-8 w-auto"
+                />
+              </Link>
+              <button
+                className="text-theme-offwhite hover:text-theme-gold transition-colors p-1"
+                onClick={() => setOpen(false)}
+                aria-label="Close menu"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Mobile Menu Links */}
+            <div className="flex flex-col justify-center gap-6 my-auto">
               {links.map((link) => {
                 const isActive = pathname === link.href
                 return (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`text-sm font-semibold uppercase tracking-widest py-3.5 border-b border-white/5 transition-colors ${
-                      isActive ? 'text-gold-metallic font-bold' : 'text-beige-luxury/70 hover:text-gold-metallic'
+                    onClick={() => setOpen(false)}
+                    className={`text-sm font-bold uppercase tracking-wider text-center py-2 transition-colors ${
+                      isActive ? 'text-theme-gold' : 'text-theme-offwhite/85 hover:text-theme-gold'
                     }`}
                   >
                     {link.name}
                   </Link>
                 )
               })}
+            </div>
+
+            {/* Mobile Menu CTA */}
+            <div className="pb-8">
               <Link
                 href="/contact"
-                className="w-full text-center py-4 bg-gold-metallic hover:bg-white text-black-luxury hover:text-black-luxury text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 mt-4 shadow-lg shadow-gold-metallic/20"
+                onClick={() => setOpen(false)}
+                className="w-full block text-center py-4 bg-theme-gold hover:bg-white text-theme-black text-xs font-bold uppercase tracking-widest rounded transition-all duration-300 shadow-lg shadow-theme-gold/20"
               >
-                Book Consultation
+                Get a Quote
               </Link>
             </div>
           </motion.div>

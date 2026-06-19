@@ -19,7 +19,16 @@ module.exports = {
         'charcoal-luxury': '#121211',
         'gold-metallic': '#D4AF37',
         'gold-mute': '#A68A56',
-        'beige-luxury': '#F4EFE6'
+        'beige-luxury': '#F4EFE6',
+        'theme-black': '#111111',
+        'theme-darkgrey': '#333333',
+        'theme-grey': '#777777',
+        'theme-offwhite': '#F5F5F5',
+        'theme-gold': '#D4AF37',
+        'dark-bg': '#111111',
+        'dark-grey': '#333333',
+        'grey-mid': '#777777',
+        'off-white': '#F5F5F5'
       },
       fontFamily: {
         serif: ['Playfair Display', 'serif'],

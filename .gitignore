@@ -52,6 +52,9 @@ next-env.d.ts
 /create-admin-user.js
 /inspect-insforge-auth.mjs
 /test-auth.mjs
+/scripts/
 
+# Windows artifact
+/nul
 
 .vercel
