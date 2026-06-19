@@ -82,7 +82,7 @@ export default function Footer() {
         <div className="md:col-span-1 space-y-4">
           <h4 className="text-xs font-bold uppercase tracking-widest text-theme-gold">Follow Us</h4>
           <div className="flex flex-row md:flex-col gap-3 pt-1">
-            <a href="https://www.instagram.com/hayagriva_interiors" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Instagram">
+            <a href="https://www.instagram.com/hayagriva_interiors?utm_source=qr&igsh=MWxydW0yd3Y4aXAzZQ==" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Instagram">
               <Instagram size={16} />
             </a>
             <a href="https://youtube.com/@hayagrivainteriors" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="YouTube">
