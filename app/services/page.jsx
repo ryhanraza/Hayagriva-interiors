@@ -34,23 +34,9 @@ const coreServices = [
   {
     title: 'Space Planning & 3D Design',
     desc: 'Professional layouts with photorealistic renders before construction begins.',
-    image: 'https://images.unsplash.com/photo-1574359173614-c8e931f42b58?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1000&auto=format&fit=crop',
     slug: 'space-planning',
     filter: ''
-  },
-  {
-    title: 'False Ceiling & Lighting',
-    desc: 'Layered ceiling designs with concealed LEDs and smart dimming systems.',
-    image: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?q=80&w=1000&auto=format&fit=crop',
-    slug: 'ceiling-lighting',
-    filter: ''
-  },
-  {
-    title: 'Wardrobes',
-    desc: 'Custom storage with premium joinery, soft-close hardware, and smart organizers.',
-    image: 'https://images.unsplash.com/photo-1558997519-83ea9252edf8?q=80&w=1000&auto=format&fit=crop',
-    slug: 'wardrobes',
-    filter: 'Bedroom'
   }
 ]
 

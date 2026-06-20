@@ -13,7 +13,6 @@ import {
   Utensils, 
   Bed, 
   Sofa, 
-  Layers, 
   Phone, 
   User, 
   Sparkles, 
@@ -131,20 +130,6 @@ export default function Home() {
       icon: PencilRuler,
       color: 'bg-gold-light/40',
       href: '/services/space-planning'
-    },
-    {
-      title: 'False Ceiling & Lighting',
-      desc: 'Layered false ceiling designs with concealed LED coves, ambient washes, and smart dimming for every mood.',
-      icon: Sparkles,
-      color: 'bg-gold-light/40',
-      href: '/services/ceiling-lighting'
-    },
-    {
-      title: 'Wardrobes',
-      desc: 'Highly customized storage systems using premium joinery, matte laminates, and smart internal organizers.',
-      icon: Layers,
-      color: 'bg-gold-light/40',
-      href: '/services/wardrobes'
     }
   ]
 

@@ -8,13 +8,11 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  Lightbulb,
   Monitor,
   Paintbrush,
   Utensils,
   Bed,
   Sofa,
-  Layers,
   PencilRuler,
   Sparkles,
   Grid3x3,
@@ -77,7 +75,7 @@ const servicesMap = {
     title: 'Space Planning & 3D Design',
     tag: 'Visualize Before You Build',
     icon: PencilRuler,
-    image: 'https://images.unsplash.com/photo-1574359173614-c8e931f42b58?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1200&auto=format&fit=crop',
     gallery: '',
     desc: 'Professional space planning with photorealistic 3D renders to visualize your entire home before a single material is ordered. Our designers analyze traffic flow, natural light, and functional zones to create optimized layouts. You will see every angle, finish, and furnishing in cinematic 3D before construction begins.',
     features: [
@@ -89,40 +87,6 @@ const servicesMap = {
       'Unlimited revisions until you are satisfied'
     ],
     budget: '₹15K – ₹50K'
-  },
-  'ceiling-lighting': {
-    title: 'False Ceiling & Lighting',
-    tag: 'Layered Atmosphere Design',
-    icon: Lightbulb,
-    image: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?q=80&w=1200&auto=format&fit=crop',
-    gallery: '',
-    desc: 'Layered false ceiling designs with concealed LED coves, ambient washes, and smart dimming systems for every mood. From minimalist perimeter coves to multi-level tray ceilings with accent pendants, we design lighting architectures that transform spaces from clinical to cinematic — all controlled from your phone.',
-    features: [
-      'Multi-level POP & gypsum false ceilings',
-      'Concealed LED cove & perimeter lighting',
-      'Smart dimming with app control',
-      'Task, ambient & accent layer design',
-      'Pendant & chandelier integration',
-      'Circadian rhythm-compatible warm tones'
-    ],
-    budget: '₹60K – ₹2L'
-  },
-  'wardrobes': {
-    title: 'Wardrobes',
-    tag: 'Intelligent Storage Systems',
-    icon: Layers,
-    image: 'https://images.unsplash.com/photo-1558997519-83ea9252edf8?q=80&w=1200&auto=format&fit=crop',
-    gallery: 'Bedroom',
-    desc: 'Highly customized wardrobe systems built with premium joinery, soft-close hardware, and smart internal organizers. From sleek handleless sliding wardrobes to walk-in closet systems with dedicated shoe racks, tie holders, and accessory trays — every detail is engineered around your daily routine.',
-    features: [
-      'Sliding & hinged wardrobe configurations',
-      'Modular internal organizers & dividers',
-      'Soft-close drawer runners & hinges',
-      'Integrated LED wardrobe lighting',
-      'Premium laminate, acrylic & veneer finishes',
-      'Shoe racks, tie holders & accessory trays'
-    ],
-    budget: '₹80K – ₹3L'
   }
 }
 
