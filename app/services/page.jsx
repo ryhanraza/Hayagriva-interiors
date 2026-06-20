@@ -39,7 +39,7 @@ const coreServices = [
     filter: ''
   },
   {
-    title: 'Turnkey Interior Solutions',
+    title: 'Turnkey Interiors',
     desc: 'Complete interior solutions from design to execution.',
     image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1000&auto=format&fit=crop',
     slug: 'turnkey-solutions',
@@ -78,7 +78,7 @@ const detailedServices = [
     features: ['Walnut veneer executive desks', 'Concealed wiring systems', 'Acoustic felt paneling', 'Smart storage & floating shelves']
   },
   {
-    title: 'Turnkey Interior Solutions',
+    title: 'Turnkey Interiors',
     tag: 'End-to-End Execution',
     desc: 'A single-source, hassle-free engagement where we handle every stage of your project — from concept and 3D design to procurement, civil works, carpentry, and final handover. One dedicated project manager, one timeline, one accountable team delivering your complete home, move-in ready.',
     image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop',

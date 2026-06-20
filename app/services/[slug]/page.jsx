@@ -90,7 +90,7 @@ const servicesMap = {
     budget: '₹15K – ₹50K'
   },
   'turnkey-solutions': {
-    title: 'Turnkey Interior Solutions',
+    title: 'Turnkey Interiors',
     tag: 'End-to-End Execution',
     icon: KeyRound,
     image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop',

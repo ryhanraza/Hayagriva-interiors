@@ -132,7 +132,7 @@ export default function Home() {
       href: '/services/space-planning'
     },
     {
-      title: 'Turnkey Interior Solutions',
+      title: 'Turnkey Interiors',
       desc: 'Complete interior solutions from design to execution.',
       icon: KeyRound,
       color: 'bg-gold-light/40',
