@@ -130,6 +130,13 @@ export default function Home() {
       icon: PencilRuler,
       color: 'bg-gold-light/40',
       href: '/services/space-planning'
+    },
+    {
+      title: 'Turnkey Interior Solutions',
+      desc: 'Complete interior solutions from design to execution.',
+      icon: KeyRound,
+      color: 'bg-gold-light/40',
+      href: '/services/turnkey-solutions'
     }
   ]
 

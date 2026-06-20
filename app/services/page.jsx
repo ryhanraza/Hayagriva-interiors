@@ -37,6 +37,13 @@ const coreServices = [
     image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1000&auto=format&fit=crop',
     slug: 'space-planning',
     filter: ''
+  },
+  {
+    title: 'Turnkey Interior Solutions',
+    desc: 'Complete interior solutions from design to execution.',
+    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1000&auto=format&fit=crop',
+    slug: 'turnkey-solutions',
+    filter: ''
   }
 ]
 
@@ -69,6 +76,13 @@ const detailedServices = [
     desc: 'Productive home offices and study spaces that feel sophisticated and focused. We blend modern ergonomic standards with high-end materials like American walnut and anodized aluminum. Hidden cable organizer ducts, custom task lighting, and acoustic felt backing ensure a clean, distraction-free environment.',
     image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop',
     features: ['Walnut veneer executive desks', 'Concealed wiring systems', 'Acoustic felt paneling', 'Smart storage & floating shelves']
+  },
+  {
+    title: 'Turnkey Interior Solutions',
+    tag: 'End-to-End Execution',
+    desc: 'A single-source, hassle-free engagement where we handle every stage of your project — from concept and 3D design to procurement, civil works, carpentry, and final handover. One dedicated project manager, one timeline, one accountable team delivering your complete home, move-in ready.',
+    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop',
+    features: ['Single-point project ownership', 'Design + civil + execution in-house', 'Dedicated project manager & timeline', 'Move-in ready final handover']
   }
 ]
 

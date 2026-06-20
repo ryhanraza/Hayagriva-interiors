@@ -16,7 +16,8 @@ import {
   PencilRuler,
   Sparkles,
   Grid3x3,
-  Sun
+  Sun,
+  KeyRound
 } from 'lucide-react'
 
 const servicesMap = {
@@ -87,6 +88,23 @@ const servicesMap = {
       'Unlimited revisions until you are satisfied'
     ],
     budget: '₹15K – ₹50K'
+  },
+  'turnkey-solutions': {
+    title: 'Turnkey Interior Solutions',
+    tag: 'End-to-End Execution',
+    icon: KeyRound,
+    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop',
+    gallery: '',
+    desc: 'Complete interior solutions from design to execution. A single-source, hassle-free engagement where we handle every stage of your project — concept and 3D design, procurement, civil works, carpentry, finishes, and final handover. One dedicated project manager, one timeline, and one accountable team delivering your entire home move-in ready.',
+    features: [
+      'Single-point project ownership & accountability',
+      'Design, civil works & execution all in-house',
+      'Dedicated project manager & transparent timeline',
+      'Quality checks at every milestone',
+      'Procurement, installation & styling included',
+      'Move-in ready final handover'
+    ],
+    budget: '₹3L – ₹25L'
   }
 }
 
