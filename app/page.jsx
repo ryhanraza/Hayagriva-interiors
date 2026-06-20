@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useRef, useEffect } from 'react'
+import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
@@ -37,6 +37,28 @@ import {
 // Import custom components
 import BeforeAfterSlider from '../components/BeforeAfterSlider'
 import HomeTestimonials from '../components/HomeTestimonials'
+
+// Animated count-up component: animates from 0 to `target` when scrolled into view
+function CountUp({ target, suffix = '', duration = 2 }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-50px' })
+  const count = useMotionValue(0)
+  const rounded = useTransform(count, (latest) => Math.round(latest))
+
+  useEffect(() => {
+    if (inView) {
+      const controls = animate(count, target, { duration, ease: [0.16, 1, 0.3, 1] })
+      return controls.stop
+    }
+  }, [inView, target, duration, count])
+
+  return (
+    <span ref={ref} className="inline-flex">
+      <motion.span>{rounded}</motion.span>
+      {suffix}
+    </span>
+  )
+}
 
 export default function Home() {
   // Hero lead form states
@@ -75,9 +97,9 @@ export default function Home() {
 
   // Stats data for Trust Indicators
   const stats = [
-    { value: '500+', label: 'Homes Delivered', subtext: 'Exquisite designs across AP', icon: CheckCircle2 },
-    { value: '5+ Years', label: 'Experience', subtext: 'Refined craftsmanship', icon: Shield },
-    { value: '100%', label: 'Client Satisfaction', subtext: 'Discerning reviews', icon: Heart }
+    { value: 500, suffix: '+', label: 'Homes Delivered', subtext: 'Exquisite designs across AP', icon: CheckCircle2 },
+    { value: 5, suffix: '+ Years', label: 'Experience', subtext: 'Refined craftsmanship', icon: Shield },
+    { value: 100, suffix: '%', label: 'Client Satisfaction', subtext: 'Discerning reviews', icon: Heart }
   ]
 
   // Services data
@@ -86,25 +108,29 @@ export default function Home() {
       title: 'Modular Kitchen',
       desc: 'Sleek, ergonomic layouts featuring premium soft-close cabinets, white oak paneling, and marble surfaces.',
       icon: Utensils,
-      color: 'bg-gold-light/40'
+      color: 'bg-gold-light/40',
+      href: '/portfolio?filter=Kitchen'
     },
     {
       title: 'Bedroom Interiors',
       desc: 'Timeless master suites designed for peace. Custom headboards, walk-in closets, and ambient bedside lighting.',
       icon: Bed,
-      color: 'bg-gold-light/40'
+      color: 'bg-gold-light/40',
+      href: '/portfolio?filter=Bedroom'
     },
     {
       title: 'Living Room Design',
       desc: 'Elegant lounges blending Scandinavian simplicity and luxury. Floating media consoles and bespoke plaster walls.',
       icon: Sofa,
-      color: 'bg-gold-light/40'
+      color: 'bg-gold-light/40',
+      href: '/portfolio?filter=Living%20Room'
     },
     {
       title: 'Wardrobes',
       desc: 'Highly customized storage systems using premium joinery, matte laminates, and smart internal organizers.',
       icon: Layers,
-      color: 'bg-gold-light/40'
+      color: 'bg-gold-light/40',
+      href: '/services'
     }
   ]
 
@@ -350,19 +376,27 @@ export default function Home() {
           {stats.map((stat, idx) => {
             const Icon = stat.icon
             return (
-              <motion.div 
+              <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.6, delay: idx * 0.12, ease: [0.16, 1, 0.3, 1] }}
                 className="flex items-center gap-4 px-4 py-3 border-r border-charcoal/5 last:border-none"
               >
-                <div className="w-12 h-12 rounded-2xl bg-gold-light/40 border border-gold/15 text-gold flex items-center justify-center shrink-0">
+                <motion.div
+                  initial={{ scale: 0, rotate: -45 }}
+                  whileInView={{ scale: 1, rotate: 0 }}
+                  viewport={{ once: true, margin: '-50px' }}
+                  transition={{ duration: 0.5, delay: idx * 0.12 + 0.2, type: 'spring', stiffness: 200 }}
+                  className="w-12 h-12 rounded-2xl bg-gold-light/40 border border-gold/15 text-gold flex items-center justify-center shrink-0"
+                >
                   <Icon size={20} className="stroke-gold-dark" />
-                </div>
+                </motion.div>
                 <div>
-                  <div className="text-2xl sm:text-3xl font-serif font-extrabold text-charcoal tracking-tight leading-none">{stat.value}</div>
+                  <div className="text-2xl sm:text-3xl font-serif font-extrabold text-charcoal tracking-tight leading-none">
+                    <CountUp target={stat.value} suffix={stat.suffix} />
+                  </div>
                   <div className="text-xs font-bold text-charcoal/80 uppercase tracking-widest mt-1">{stat.label}</div>
                   <div className="text-[10px] text-charcoal/50 font-medium mt-0.5">{stat.subtext}</div>
                 </div>
@@ -392,35 +426,40 @@ export default function Home() {
           {services.map((item, idx) => {
             const Icon = item.icon
             return (
-              <motion.div
+              <Link
                 key={item.title}
-                initial={{ opacity: 0, y: 35 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -8, scale: 1.02 }}
-                className="group relative p-8 bg-white border border-gold/15 rounded-2xl shadow-sm hover:shadow-lg hover:border-gold transition-all duration-500 overflow-hidden flex flex-col justify-between h-[300px]"
+                href={item.href}
+                className="group relative block h-[300px] cursor-pointer"
               >
-                {/* Decorative border highlight */}
-                <div className="absolute top-0 left-0 w-0 group-hover:w-full h-[3px] bg-gold transition-all duration-500" />
-                
-                <div>
-                  <div className={`w-12 h-12 ${item.color} text-gold border border-gold/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gold group-hover:text-white transition-all duration-500 shadow-sm`}>
-                    <Icon size={20} />
-                  </div>
-                  <h4 className="text-xl font-bold text-charcoal font-serif group-hover:text-gold-dark transition-colors duration-300">
-                    {item.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-charcoal/60 leading-relaxed mt-3 group-hover:text-charcoal/80 transition-colors duration-300">
-                    {item.desc}
-                  </p>
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 35 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  className="relative p-8 bg-white border border-gold/15 rounded-2xl shadow-sm hover:shadow-lg hover:border-gold transition-all duration-500 overflow-hidden flex flex-col justify-between h-full"
+                >
+                  {/* Decorative border highlight */}
+                  <div className="absolute top-0 left-0 w-0 group-hover:w-full h-[3px] bg-gold transition-all duration-500" />
 
-                <div className="pt-4 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gold-dark opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span>Explore Design</span>
-                  <ArrowRight size={10} />
-                </div>
-              </motion.div>
+                  <div>
+                    <div className={`w-12 h-12 ${item.color} text-gold border border-gold/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gold group-hover:text-white transition-all duration-500 shadow-sm`}>
+                      <Icon size={20} />
+                    </div>
+                    <h4 className="text-xl font-bold text-charcoal font-serif group-hover:text-gold-dark transition-colors duration-300">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-charcoal/60 leading-relaxed mt-3 group-hover:text-charcoal/80 transition-colors duration-300">
+                      {item.desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gold-dark opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span>Explore Design</span>
+                    <ArrowRight size={10} />
+                  </div>
+                </motion.div>
+              </Link>
             )
           })}
         </div>
