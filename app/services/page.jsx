@@ -5,7 +5,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
-  ChevronRight,
   CheckCircle2
 } from 'lucide-react'
 
@@ -234,11 +233,6 @@ export default function ServicesPage() {
                   <h4 className="text-xl font-bold font-serif text-charcoal mb-4">{guide.title}</h4>
                   <div className="text-3xl font-serif font-extrabold text-gold-dark mb-4">{guide.range}</div>
                   <p className="text-xs sm:text-sm text-charcoal/60 leading-relaxed">{guide.desc}</p>
-                </div>
-                
-                <div className="mt-8 pt-6 border-t border-charcoal/10 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-charcoal/70">
-                  <span>Standard Specifications</span>
-                  <ChevronRight size={14} className="text-gold" />
                 </div>
               </motion.div>
             ))}
