@@ -287,12 +287,13 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="flex flex-wrap gap-4 pt-4"
             >
-              <a 
-                href="#consultation"
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event('open-consultation'))}
                 className="px-8 py-4 bg-gold hover:bg-white text-charcoal hover:text-charcoal font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-500 shadow-lg shadow-gold/20"
               >
                 Book Free Consultation
-              </a>
+              </button>
               <Link 
                 href="/portfolio" 
                 className="px-8 py-4 border border-white/20 hover:border-gold text-white hover:text-gold font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-500 flex items-center gap-2"
