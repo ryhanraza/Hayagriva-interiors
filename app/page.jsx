@@ -109,28 +109,42 @@ export default function Home() {
       desc: 'Sleek, ergonomic layouts featuring premium soft-close cabinets, white oak paneling, and marble surfaces.',
       icon: Utensils,
       color: 'bg-gold-light/40',
-      href: '/portfolio?filter=Kitchen'
+      href: '/services/modular-kitchen'
     },
     {
       title: 'Bedroom Interiors',
       desc: 'Timeless master suites designed for peace. Custom headboards, walk-in closets, and ambient bedside lighting.',
       icon: Bed,
       color: 'bg-gold-light/40',
-      href: '/portfolio?filter=Bedroom'
+      href: '/services/bedroom'
     },
     {
       title: 'Living Room Design',
       desc: 'Elegant lounges blending Scandinavian simplicity and luxury. Floating media consoles and bespoke plaster walls.',
       icon: Sofa,
       color: 'bg-gold-light/40',
-      href: '/portfolio?filter=Living%20Room'
+      href: '/services/living-room'
+    },
+    {
+      title: 'Space Planning & 3D Design',
+      desc: 'Professional space planning with photorealistic 3D renders to visualize your home before a single material is ordered.',
+      icon: PencilRuler,
+      color: 'bg-gold-light/40',
+      href: '/services/space-planning'
+    },
+    {
+      title: 'False Ceiling & Lighting',
+      desc: 'Layered false ceiling designs with concealed LED coves, ambient washes, and smart dimming for every mood.',
+      icon: Sparkles,
+      color: 'bg-gold-light/40',
+      href: '/services/ceiling-lighting'
     },
     {
       title: 'Wardrobes',
       desc: 'Highly customized storage systems using premium joinery, matte laminates, and smart internal organizers.',
       icon: Layers,
       color: 'bg-gold-light/40',
-      href: '/services'
+      href: '/services/wardrobes'
     }
   ]
 

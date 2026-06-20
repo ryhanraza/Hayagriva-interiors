@@ -10,29 +10,47 @@ import {
 
 // Core Services Grid Data
 const coreServices = [
-  {
+    {
     title: 'Modular Kitchen',
     desc: 'Precision cabinetry, natural stone countertops, and intelligent storage layouts.',
     image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=1000&auto=format&fit=crop',
+    slug: 'modular-kitchen',
     filter: 'Kitchen'
   },
   {
     title: 'Bedroom Interiors',
     desc: 'Calm suites with luxury headboards, custom walk-in closets, and ambient lighting.',
     image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1000&auto=format&fit=crop',
+    slug: 'bedroom',
     filter: 'Bedroom'
   },
   {
     title: 'Living Room Design',
     desc: 'Elegant lounges blending tailored furniture, floating consoles, and custom walls.',
     image: 'https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?q=80&w=1000&auto=format&fit=crop',
+    slug: 'living-room',
     filter: 'Living Room'
   },
   {
-    title: 'Office Interiors',
-    desc: 'Ergonomic workspaces crafted for focus, combining premium woods and cable systems.',
-    image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1000&auto=format&fit=crop',
-    filter: 'Residential'
+    title: 'Space Planning & 3D Design',
+    desc: 'Professional layouts with photorealistic renders before construction begins.',
+    image: 'https://images.unsplash.com/photo-1574359173614-c8e931f42b58?q=80&w=1000&auto=format&fit=crop',
+    slug: 'space-planning',
+    filter: ''
+  },
+  {
+    title: 'False Ceiling & Lighting',
+    desc: 'Layered ceiling designs with concealed LEDs and smart dimming systems.',
+    image: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?q=80&w=1000&auto=format&fit=crop',
+    slug: 'ceiling-lighting',
+    filter: ''
+  },
+  {
+    title: 'Wardrobes',
+    desc: 'Custom storage with premium joinery, soft-close hardware, and smart organizers.',
+    image: 'https://images.unsplash.com/photo-1558997519-83ea9252edf8?q=80&w=1000&auto=format&fit=crop',
+    slug: 'wardrobes',
+    filter: 'Bedroom'
   }
 ]
 
@@ -111,7 +129,7 @@ export default function ServicesPage() {
               transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="group relative h-[380px] rounded-3xl overflow-hidden shadow-md cursor-pointer border border-charcoal/5 hover:border-gold/30 hover:shadow-xl transition-all duration-500"
             >
-              <Link href={`/portfolio?filter=${service.filter}`} className="absolute inset-0 z-30">
+              <Link href={`/services/${service.slug}`} className="absolute inset-0 z-30">
                 <Image
                   src={service.image}
                   alt={service.title}
