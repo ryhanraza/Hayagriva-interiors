@@ -347,10 +347,12 @@ export default function Home() {
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={16} />
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    pattern="\d{7,15}"
                     placeholder="Your Phone Number"
                     required
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                     className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/25 text-white placeholder-white/30 text-xs transition-all"
                   />
                 </div>

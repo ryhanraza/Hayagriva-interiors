@@ -51,6 +51,11 @@ export default function ConsultationModal() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  // Phone field: digits only
+  const handlePhoneChange = (e) => {
+    setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -170,7 +175,9 @@ export default function ConsultationModal() {
                       type="tel"
                       name="phone"
                       value={formData.phone}
-                      onChange={handleChange}
+                      onChange={handlePhoneChange}
+                      inputMode="numeric"
+                      pattern="\d{7,15}"
                       placeholder="Phone Number"
                       className="w-full px-4 py-3 bg-warmcream border border-charcoal/10 rounded-xl focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 text-charcoal placeholder-softgrey/70 text-sm transition-all"
                       required

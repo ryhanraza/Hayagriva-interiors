@@ -37,6 +37,11 @@ export default function ContactForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  // Phone field: digits only
+  const handlePhoneChange = (e) => {
+    setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })
+  }
+
   return (
     <div className="w-full">
       {sent ? (
@@ -90,7 +95,9 @@ export default function ContactForm() {
               type="tel"
               name="phone"
               value={formData.phone}
-              onChange={handleChange}
+              onChange={handlePhoneChange}
+              inputMode="numeric"
+              pattern="\d{7,15}"
               placeholder="Phone Number (e.g. +91 95731 78887)"
               className="w-full px-5 py-4 bg-charcoal/5 border border-charcoal/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/20 text-charcoal placeholder-charcoal/40 text-sm transition-all"
               required
