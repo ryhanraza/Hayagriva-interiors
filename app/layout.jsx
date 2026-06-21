@@ -5,8 +5,20 @@ import FloatingWhatsApp from '../components/FloatingWhatsApp'
 import ConsultationModal from '../components/ConsultationModal'
 
 export const metadata = {
-  title: 'Hayagriva Interiors',
+  metadataBase: new URL('https://hayagrivainteriors.com'),
+  title: {
+    default: 'Hayagriva Interiors',
+    template: '%s | Hayagriva Interiors',
+  },
   description: 'Premium Interior Design Studio',
+  openGraph: {
+    siteName: 'Hayagriva Interiors',
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 }
 
 export default function RootLayout({ children }) {

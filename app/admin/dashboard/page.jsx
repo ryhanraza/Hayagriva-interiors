@@ -27,8 +27,15 @@ import {
   TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
-  LayoutDashboard
+  LayoutDashboard,
+  Search,
+  Globe,
+  Save,
+  RotateCcw,
+  Layers,
+  EyeOff
 } from 'lucide-react'
+import { SEO_PAGES } from '../../../lib/seo-pages'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -40,7 +47,32 @@ export default function AdminDashboard() {
   const [contacts, setContacts] = useState([])
   const [projects, setProjects] = useState([])
   const [expenses, setExpenses] = useState([])
+  const [seoRows, setSeoRows] = useState([])
+  const [activeSeoPage, setActiveSeoPage] = useState('home')
+  const [seoDraft, setSeoDraft] = useState(null)
+  const [seoSaving, setSeoSaving] = useState(false)
+  const [seoSavedAt, setSeoSavedAt] = useState(null)
   const [loadingData, setLoadingData] = useState(true)
+
+  // Page Content Manager States
+  const [sections, setSections] = useState([])
+  const [activeContentPage, setActiveContentPage] = useState('home')
+  const [sectionModal, setSectionModal] = useState(null)
+  const [sectionFormData, setSectionFormData] = useState({
+    type: 'hero',
+    title: '',
+    subtitle: '',
+    description: '',
+    content: '',
+    layout: 'full-width',
+    images: [],
+    buttons: [],
+    custom_json: '',
+    is_visible: true
+  })
+  const [sectionSaving, setSectionSaving] = useState(false)
+  const [sectionOrdering, setSectionOrdering] = useState(false)
+  const [draggedIndex, setDraggedIndex] = useState(null)
 
   // Modals & Drawers
   const [viewContact, setViewContact] = useState(null)
@@ -175,9 +207,25 @@ export default function AdminDashboard() {
       })
       const expensesData = await expensesRes.json()
 
+      // Fetch SEO settings
+      const seoRes = await fetch('/api/admin/seo', {
+        headers,
+        credentials: 'include'
+      })
+      const seoData = await seoRes.json()
+
+      // Fetch Page Sections
+      const contentRes = await fetch(`/api/content/${activeContentPage}`, {
+        headers,
+        credentials: 'include'
+      })
+      const contentData = await contentRes.json()
+
       if (Array.isArray(contactsData)) setContacts(contactsData)
       if (Array.isArray(projectsData)) setProjects(projectsData)
       if (Array.isArray(expensesData)) setExpenses(expensesData)
+      if (Array.isArray(seoData)) setSeoRows(seoData)
+      if (Array.isArray(contentData)) setSections(contentData)
     } catch (err) {
       console.error('Failed to load dashboard data:', err)
       setErrorMsg('Failed to load dashboard data. Check connection.')
@@ -408,6 +456,311 @@ export default function AdminDashboard() {
     }
   }
 
+  // ── SEO Settings handlers ──────────────────────────────────
+
+  // The active draft mirrors the row for the selected page.
+  // On first load (no rows yet), synthesize a blank draft from the page registry.
+  const activeSeoRow = seoRows.find((r) => r.page === activeSeoPage) || null
+  const currentDraft =
+    seoDraft && seoDraft.page === activeSeoPage
+      ? seoDraft
+      : {
+          page: activeSeoPage,
+          seo_title: activeSeoRow?.seo_title || '',
+          meta_description: activeSeoRow?.meta_description || '',
+          meta_keywords: activeSeoRow?.meta_keywords || '',
+          canonical_url: activeSeoRow?.canonical_url || '',
+          og_title: activeSeoRow?.og_title || '',
+          og_description: activeSeoRow?.og_description || '',
+          og_image: activeSeoRow?.og_image || '',
+          og_image_key: activeSeoRow?.og_image_key || '',
+          robots: activeSeoRow?.robots || 'index, follow'
+        }
+
+  // Track whether the draft diverges from the saved row.
+  const seoIsDirty = (() => {
+    const saved = activeSeoRow || {}
+    const keys = ['seo_title', 'meta_description', 'meta_keywords', 'canonical_url', 'og_title', 'og_description', 'og_image', 'og_image_key', 'robots']
+    return keys.some((k) => (currentDraft[k] || '') !== (saved[k] || ''))
+  })()
+
+  // Upload OG image to storage bucket; persist both url + key.
+  const handleSeoImageUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingImage(true)
+    setErrorMsg('')
+    try {
+      const { data, error } = await insforgeClient.storage.from('images').uploadAuto(file)
+      if (error) throw error
+
+      setSeoDraft((prev) => {
+        const base = prev && prev.page === activeSeoPage ? prev : currentDraft
+        return { ...base, page: activeSeoPage, og_image: data.url, og_image_key: data.key }
+      })
+    } catch (err) {
+      console.error('SEO image upload failed:', err)
+      setErrorMsg('Image upload failed: ' + err.message)
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  // Persist draft via PUT upsert.
+  const handleSeoSave = async () => {
+    setSeoSaving(true)
+    setErrorMsg('')
+    try {
+      const headers = await getHeaders()
+      const res = await fetch('/api/admin/seo', {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(currentDraft),
+        credentials: 'include'
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to save SEO settings')
+
+      await fetchDashboardData()
+      setSeoDraft(null)
+      setSeoSavedAt(Date.now())
+    } catch (err) {
+      setErrorMsg(err.message)
+    } finally {
+      setSeoSaving(false)
+    }
+  }
+
+  // Reset draft back to the last saved row.
+  const handleSeoReset = () => setSeoDraft(null)
+
+  // Update a single field in the draft, seeding it from the current row on first edit.
+  const updateSeoField = (field, value) => {
+    setSeoDraft((prev) => {
+      const base = prev && prev.page === activeSeoPage ? prev : currentDraft
+      return { ...base, page: activeSeoPage, [field]: value }
+    })
+  }
+
+  // ── Page Content Handlers ──────────────────────────────────
+
+  async function fetchSections(page) {
+    try {
+      const headers = await getHeaders()
+      const res = await fetch(`/api/content/${page}`, {
+        headers,
+        credentials: 'include'
+      })
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setSections(data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch sections:', err)
+    }
+  }
+
+  useEffect(() => {
+    if (user && activeTab === 'content') {
+      fetchSections(activeContentPage)
+    }
+  }, [activeContentPage, activeTab, user])
+
+  const handleSectionDrop = async (targetIndex) => {
+    if (draggedIndex === null || draggedIndex === targetIndex) return
+
+    const updated = [...sections]
+    const [removed] = updated.splice(draggedIndex, 1)
+    updated.splice(targetIndex, 0, removed)
+
+    const reordered = updated.map((sec, idx) => ({
+      ...sec,
+      section_order: idx
+    }))
+
+    setSections(reordered)
+    setDraggedIndex(null)
+
+    try {
+      setSectionOrdering(true)
+      const headers = await getHeaders()
+      const res = await fetch('/api/content/reorder', {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          orders: reordered.map(sec => ({ id: sec.id, order: sec.section_order }))
+        }),
+        credentials: 'include'
+      })
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Failed to update order')
+      }
+    } catch (err) {
+      setErrorMsg('Failed to save section order: ' + err.message)
+      fetchSections(activeContentPage)
+    } finally {
+      setSectionOrdering(false)
+    }
+  }
+
+  const moveSection = async (index, direction) => {
+    const targetIndex = index + direction
+    if (targetIndex < 0 || targetIndex >= sections.length) return
+
+    const updated = [...sections]
+    const temp = updated[index]
+    updated[index] = updated[targetIndex]
+    updated[targetIndex] = temp
+
+    const reordered = updated.map((sec, idx) => ({
+      ...sec,
+      section_order: idx
+    }))
+
+    setSections(reordered)
+
+    try {
+      setSectionOrdering(true)
+      const headers = await getHeaders()
+      const res = await fetch('/api/content/reorder', {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          orders: reordered.map(sec => ({ id: sec.id, order: sec.section_order }))
+        }),
+        credentials: 'include'
+      })
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Failed to update order')
+      }
+    } catch (err) {
+      setErrorMsg('Failed to save section order: ' + err.message)
+      fetchSections(activeContentPage)
+    } finally {
+      setSectionOrdering(false)
+    }
+  }
+
+  const handleSectionImageUpload = async (e) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingImage(true)
+    setErrorMsg('')
+    try {
+      const newImages = [...sectionFormData.images]
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const { data, error } = await insforgeClient.storage.from('images').uploadAuto(file)
+        if (error) throw error
+        newImages.push({ url: data.url, key: data.key })
+      }
+      setSectionFormData(prev => ({
+        ...prev,
+        images: newImages
+      }))
+    } catch (err) {
+      console.error('Section image upload failed:', err)
+      setErrorMsg('Image upload failed: ' + err.message)
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const handleSectionSave = async (e) => {
+    e.preventDefault()
+    setSectionSaving(true)
+    setErrorMsg('')
+
+    try {
+      const headers = await getHeaders()
+      const method = sectionModal.mode === 'add' ? 'POST' : 'PUT'
+      const url = sectionModal.mode === 'add'
+        ? `/api/content/${activeContentPage}`
+        : `/api/content/${activeContentPage}/${sectionModal.section.id}`
+
+      let customJsonParsed = {}
+      const rawJson = sectionFormData.custom_json
+      if (rawJson && typeof rawJson === 'string' && rawJson.trim()) {
+        try {
+          customJsonParsed = JSON.parse(rawJson.trim())
+        } catch (err) {
+          throw new Error('Invalid custom JSON format. Please correct it.')
+        }
+      } else if (rawJson && typeof rawJson === 'object') {
+        customJsonParsed = rawJson
+      }
+
+      const payload = {
+        ...sectionFormData,
+        custom_json: customJsonParsed
+      }
+
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: JSON.stringify(payload),
+        credentials: 'include'
+      })
+
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to save section')
+
+      await fetchSections(activeContentPage)
+      setSectionModal(null)
+    } catch (err) {
+      setErrorMsg(err.message)
+    } finally {
+      setSectionSaving(false)
+    }
+  }
+
+  const handleSectionDelete = async (sectionId) => {
+    if (!confirm('Are you sure you want to delete this section?')) return
+
+    setErrorMsg('')
+    try {
+      const headers = await getHeaders()
+      const res = await fetch(`/api/content/${activeContentPage}/${sectionId}`, {
+        method: 'DELETE',
+        headers,
+        credentials: 'include'
+      })
+
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Failed to delete section')
+      }
+
+      await fetchSections(activeContentPage)
+    } catch (err) {
+      setErrorMsg(err.message)
+    }
+  }
+
+  const toggleSectionVisibility = async (section) => {
+    setErrorMsg('')
+    try {
+      const headers = await getHeaders()
+      const res = await fetch(`/api/content/${activeContentPage}/${section.id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ is_visible: !section.is_visible }),
+        credentials: 'include'
+      })
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Failed to update visibility')
+      }
+      await fetchSections(activeContentPage)
+    } catch (err) {
+      setErrorMsg('Failed to update visibility: ' + err.message)
+    }
+  }
+
   // Open edit project drawer
   const openEditProject = (project) => {
     setSelectedProject(project)
@@ -532,6 +885,28 @@ export default function AdminDashboard() {
             >
               <IndianRupee size={16} />
               <span>Expenses</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('seo')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${activeTab === 'seo'
+                ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
+                : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
+                }`}
+            >
+              <Search size={16} />
+              <span>SEO Settings</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('content')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${activeTab === 'content'
+                ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
+                : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
+                }`}
+            >
+              <Layers size={16} />
+              <span>Page Content</span>
             </button>
           </nav>
         </div>
@@ -1192,6 +1567,548 @@ export default function AdminDashboard() {
                 </div>
               </motion.div>
             )}
+
+            {/* SEO Settings Workspace */}
+            {activeTab === 'seo' && (
+              <motion.div
+                key="seo"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="space-y-8"
+              >
+                <div>
+                  <span className="text-[10px] font-bold tracking-[0.25em] text-gold-metallic uppercase">
+                    Search Optimization
+                  </span>
+                  <h2 className="text-3xl font-serif text-beige-luxury font-black mt-2">
+                    SEO &amp; Metadata
+                  </h2>
+                  <p className="text-xs text-beige-luxury/40 mt-2 max-w-xl">
+                    Edit how each page appears in search results and social shares. Empty fields fall back to sensible defaults.
+                  </p>
+                </div>
+
+                {/* Page selector tabs */}
+                <div className="flex flex-wrap gap-2">
+                  {SEO_PAGES.map((p) => {
+                    const row = seoRows.find((r) => r.page === p.page)
+                    const hasContent = row && (row.seo_title || row.meta_description)
+                    return (
+                      <button
+                        key={p.page}
+                        onClick={() => {
+                          setActiveSeoPage(p.page)
+                          setSeoDraft(null)
+                          setSeoSavedAt(null)
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all duration-300 ${activeSeoPage === p.page
+                          ? 'bg-gold-metallic text-black-luxury border-gold-metallic shadow-lg shadow-gold-metallic/15'
+                          : 'bg-white/5 text-beige-luxury/60 border-white/5 hover:bg-white/10'
+                          }`}
+                      >
+                        <Globe size={13} />
+                        <span>{p.label}</span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${hasContent ? 'bg-emerald-400' : 'bg-white/20'}`} />
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-8 items-start">
+                  {/* Editor form */}
+                  <div className="glass-premium rounded-3xl p-6 sm:p-8 space-y-6">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
+                        {SEO_PAGES.find((p) => p.page === activeSeoPage)?.label} Page
+                      </h3>
+                      <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${seoIsDirty
+                        ? 'bg-amber-500/10 text-amber-300 border-amber-500/25'
+                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                        }`}>
+                        {seoIsDirty ? 'Unsaved' : 'Saved'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-5">
+                      {/* SEO Title */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                            SEO Title
+                          </label>
+                          <span className={`text-[9px] font-mono ${(currentDraft.seo_title?.length || 0) > 60 ? 'text-rose-400' : 'text-beige-luxury/30'}`}>
+                            {currentDraft.seo_title?.length || 0}/60
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          maxLength={60}
+                          value={currentDraft.seo_title}
+                          onChange={(e) => updateSeoField('seo_title', e.target.value)}
+                          placeholder="Premium Modular Kitchens in Vizag | Hayagriva"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all"
+                        />
+                      </div>
+
+                      {/* Meta Description */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                            Meta Description
+                          </label>
+                          <span className={`text-[9px] font-mono ${(currentDraft.meta_description?.length || 0) > 160 ? 'text-rose-400' : 'text-beige-luxury/30'}`}>
+                            {currentDraft.meta_description?.length || 0}/160
+                          </span>
+                        </div>
+                        <textarea
+                          rows={3}
+                          maxLength={170}
+                          value={currentDraft.meta_description}
+                          onChange={(e) => updateSeoField('meta_description', e.target.value)}
+                          placeholder="Bespoke modular kitchens crafted with premium materials and turnkey execution across Andhra Pradesh."
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all resize-none"
+                        />
+                      </div>
+
+                      {/* Meta Keywords */}
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                          Meta Keywords (comma-separated)
+                        </label>
+                        <input
+                          type="text"
+                          value={currentDraft.meta_keywords}
+                          onChange={(e) => updateSeoField('meta_keywords', e.target.value)}
+                          placeholder="modular kitchen vizag, interior designer, turnkey interiors"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all"
+                        />
+                      </div>
+
+                      {/* Canonical URL */}
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                          Canonical URL (optional, page-relative)
+                        </label>
+                        <input
+                          type="text"
+                          value={currentDraft.canonical_url}
+                          onChange={(e) => updateSeoField('canonical_url', e.target.value)}
+                          placeholder={SEO_PAGES.find((p) => p.page === activeSeoPage)?.path || '/'}
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all"
+                        />
+                      </div>
+
+                      {/* OG Title / Description */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                            OG Title (Social)
+                          </label>
+                          <input
+                            type="text"
+                            value={currentDraft.og_title}
+                            onChange={(e) => updateSeoField('og_title', e.target.value)}
+                            placeholder="Falls back to SEO Title"
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                            Robots
+                          </label>
+                          <select
+                            value={currentDraft.robots}
+                            onChange={(e) => updateSeoField('robots', e.target.value)}
+                            className="w-full px-4 py-3 bg-charcoal-luxury border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury text-xs transition-all"
+                          >
+                            <option value="index, follow">Index, Follow</option>
+                            <option value="noindex, follow">Noindex, Follow</option>
+                            <option value="index, nofollow">Index, Nofollow</option>
+                            <option value="noindex, nofollow">Noindex, Nofollow</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* OG Description */}
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                          OG Description (Social)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={currentDraft.og_description}
+                          onChange={(e) => updateSeoField('og_description', e.target.value)}
+                          placeholder="Falls back to Meta Description"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all resize-none"
+                        />
+                      </div>
+
+                      {/* OG Image */}
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50 block">
+                          Social Share Image (1200×630)
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <label className="w-full h-12 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-metallic/30 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all duration-300">
+                            {uploadingImage ? (
+                              <Loader2 className="animate-spin text-gold-metallic" size={16} />
+                            ) : (
+                              <Upload size={16} className="text-gold-metallic" />
+                            )}
+                            <span className="font-bold text-beige-luxury uppercase tracking-wider text-[10px]">
+                              {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingImage}
+                              onChange={handleSeoImageUpload}
+                              className="hidden"
+                            />
+                          </label>
+                          <input
+                            type="url"
+                            value={currentDraft.og_image}
+                            onChange={(e) => {
+                              updateSeoField('og_image', e.target.value)
+                              updateSeoField('og_image_key', '')
+                            }}
+                            placeholder="https://… or upload above"
+                            className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all"
+                          />
+                        </div>
+
+                        {currentDraft.og_image && (
+                          <div className="relative rounded-2xl overflow-hidden h-32 border border-white/5 bg-white/5">
+                            <img
+                              src={currentDraft.og_image}
+                              alt="Social share preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateSeoField('og_image', '')
+                                updateSeoField('og_image_key', '')
+                              }}
+                              className="absolute top-2.5 right-2.5 p-1 bg-black-luxury/60 text-white rounded-full border border-white/10 hover:bg-red-500 transition-colors"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Save / Reset actions */}
+                    <div className="flex gap-4 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleSeoSave}
+                        disabled={!seoIsDirty || seoSaving}
+                        className="flex-1 py-3.5 bg-gold-metallic hover:bg-white text-black-luxury hover:text-black-luxury font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-gold-metallic/15 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
+                      >
+                        {seoSaving ? (
+                          <Loader2 className="animate-spin text-black-luxury" size={14} />
+                        ) : (
+                          <>
+                            <Save size={14} />
+                            <span>Save Settings</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSeoReset}
+                        disabled={!seoIsDirty}
+                        className="px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold uppercase tracking-widest rounded-xl flex items-center gap-2 disabled:opacity-40 transition-all duration-300"
+                      >
+                        <RotateCcw size={13} />
+                        Discard
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Preview / Tips panel */}
+                  <div className="space-y-6">
+                    {/* Google SERP preview */}
+                    <div className="glass-premium rounded-3xl p-6 sm:p-8 space-y-5">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
+                        Search Preview
+                      </h3>
+                      <div className="rounded-xl bg-white p-4 text-black/80">
+                        <div className="text-[11px] text-[#202124] truncate">
+                          {`hayagrivainteriors.com${SEO_PAGES.find((p) => p.page === activeSeoPage)?.path || ''}`}
+                        </div>
+                        <div className="text-[#1a0dab] text-base leading-snug mt-0.5 line-clamp-1">
+                          {currentDraft.seo_title || 'Hayagriva Interiors'}
+                        </div>
+                        <div className="text-[#4d5156] text-[12px] leading-snug mt-0.5 line-clamp-2">
+                          {currentDraft.meta_description || 'Premium Interior Design Studio'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status card */}
+                    <div className="glass-premium rounded-3xl p-6 space-y-3">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
+                        Status
+                      </h3>
+                      <div className="text-[11px] text-beige-luxury/60 leading-relaxed space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-1.5 h-1.5 rounded-full ${activeSeoRow ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                          {activeSeoRow ? 'Custom settings saved for this page.' : 'Using default settings (no row yet).'}
+                        </div>
+                        {seoSavedAt && (
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            Last saved {new Date(seoSavedAt).toLocaleTimeString('en-IN')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Page Content Manager Workspace */}
+            {activeTab === 'content' && (
+              <motion.div
+                key="content"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="space-y-8"
+              >
+                <div>
+                  <span className="text-[10px] font-bold tracking-[0.25em] text-gold-metallic uppercase">
+                    Dynamic Section Builder
+                  </span>
+                  <h2 className="text-3xl font-serif text-beige-luxury font-black mt-2">
+                    Page Content Manager
+                  </h2>
+                  <p className="text-xs text-beige-luxury/40 mt-2 max-w-xl">
+                    Add, remove, reorder, or edit custom sections for each website page. Drag sections to reorder them instantly.
+                  </p>
+                </div>
+
+                {/* Page selector tabs */}
+                <div className="flex flex-wrap gap-2">
+                  {SEO_PAGES.map((p) => (
+                    <button
+                      key={p.page}
+                      onClick={() => {
+                        setActiveContentPage(p.page)
+                      }}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all duration-300 ${activeContentPage === p.page
+                        ? 'bg-gold-metallic text-black-luxury border-gold-metallic shadow-lg shadow-gold-metallic/15'
+                        : 'bg-white/5 text-beige-luxury/60 border-white/5 hover:bg-white/10'
+                        }`}
+                    >
+                      <Globe size={13} />
+                      <span>{p.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-8 items-start">
+                  {/* Sections List */}
+                  <div className="glass-premium rounded-3xl p-6 sm:p-8 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
+                        {SEO_PAGES.find((p) => p.page === activeContentPage)?.label} Page Sections
+                      </h3>
+                      <button
+                        onClick={() => {
+                          setSectionFormData({
+                            type: 'hero',
+                            title: '',
+                            subtitle: '',
+                            description: '',
+                            content: '',
+                            layout: 'full-width',
+                            images: [],
+                            buttons: [],
+                            custom_json: '',
+                            is_visible: true
+                          })
+                          setSectionModal({ mode: 'add' })
+                        }}
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-gold-metallic hover:bg-white text-black-luxury font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md"
+                      >
+                        <Plus size={12} />
+                        <span>Add Section</span>
+                      </button>
+                    </div>
+
+                    {sections.length === 0 ? (
+                      <div className="text-center py-12 border border-dashed border-white/10 rounded-2xl">
+                        <Layers className="mx-auto text-beige-luxury/20 mb-3" size={24} />
+                        <div className="text-xs text-beige-luxury/65 font-bold uppercase tracking-wider">No dynamic sections yet</div>
+                        <p className="text-[10px] text-beige-luxury/40 mt-1 max-w-[240px] mx-auto">
+                          Add sections to override this page's default static content.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {sections.map((sec, idx) => (
+                          <div
+                            key={sec.id}
+                            draggable
+                            onDragStart={(e) => setDraggedIndex(idx)}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => handleSectionDrop(idx)}
+                            className={`group flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-metallic/25 rounded-2xl cursor-grab active:cursor-grabbing transition-all duration-300 ${draggedIndex === idx ? 'opacity-40 scale-[0.98]' : ''}`}
+                          >
+                            <div className="flex items-center gap-3.5 overflow-hidden">
+                              {/* Drag Handle Icon */}
+                              <div className="text-beige-luxury/35 group-hover:text-gold-metallic transition-colors select-none shrink-0">
+                                <svg width="14" height="18" viewBox="0 0 10 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-current">
+                                  <circle cx="2" cy="2" r="1.5" />
+                                  <circle cx="8" cy="2" r="1.5" />
+                                  <circle cx="2" cy="9" r="1.5" />
+                                  <circle cx="8" cy="9" r="1.5" />
+                                  <circle cx="2" cy="16" r="1.5" />
+                                  <circle cx="8" cy="16" r="1.5" />
+                                </svg>
+                              </div>
+                              <div className="overflow-hidden">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] font-bold uppercase tracking-widest text-gold-metallic bg-gold-metallic/15 px-2 py-0.5 rounded">
+                                    {sec.type}
+                                  </span>
+                                  <span className="text-xs font-bold text-beige-luxury truncate">
+                                    {sec.title || '(Untitled Section)'}
+                                  </span>
+                                </div>
+                                <span className="text-[9px] font-mono text-beige-luxury/35 mt-1 block truncate">
+                                  {sec.subtitle || sec.description || 'No descriptive fields configured.'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2.5 shrink-0">
+                              {/* Reordering actions */}
+                              <div className="flex gap-0.5">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0 || sectionOrdering}
+                                  onClick={(e) => { e.stopPropagation(); moveSection(idx, -1) }}
+                                  className="p-1 text-beige-luxury/40 hover:text-beige-luxury disabled:opacity-20 transition-colors"
+                                  title="Move Up"
+                                >
+                                  <ArrowUpRight className="-rotate-45" size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === sections.length - 1 || sectionOrdering}
+                                  onClick={(e) => { e.stopPropagation(); moveSection(idx, 1) }}
+                                  className="p-1 text-beige-luxury/40 hover:text-beige-luxury disabled:opacity-20 transition-colors"
+                                  title="Move Down"
+                                >
+                                  <ArrowDownRight className="rotate-45" size={13} />
+                                </button>
+                              </div>
+
+                              {/* Visibility Switch */}
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); toggleSectionVisibility(sec) }}
+                                className={`p-1.5 rounded-lg border transition-all ${sec.is_visible
+                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                                  : 'bg-white/5 text-beige-luxury/30 border-white/5 hover:bg-white/10'
+                                  }`}
+                                title={sec.is_visible ? 'Visible' : 'Hidden'}
+                              >
+                                {sec.is_visible ? <Eye size={13} /> : <EyeOff size={13} />}
+                              </button>
+
+                              {/* Edit */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSectionFormData({
+                                    type: sec.type,
+                                    title: sec.title || '',
+                                    subtitle: sec.subtitle || '',
+                                    description: sec.description || '',
+                                    content: sec.content || '',
+                                    layout: sec.layout || 'full-width',
+                                    images: sec.images || [],
+                                    buttons: sec.buttons || [],
+                                    custom_json: sec.custom_json ? JSON.stringify(sec.custom_json, null, 2) : '',
+                                    is_visible: sec.is_visible !== false
+                                  })
+                                  setSectionModal({ mode: 'edit', section: sec })
+                                }}
+                                className="p-1.5 rounded-lg bg-white/5 border border-white/5 text-beige-luxury/60 hover:text-gold-metallic hover:border-gold-metallic/25 transition-all"
+                                title="Edit"
+                              >
+                                <Edit3 size={13} />
+                              </button>
+
+                              {/* Delete */}
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); handleSectionDelete(sec.id) }}
+                                className="p-1.5 rounded-lg bg-white/5 border border-white/5 text-beige-luxury/50 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20 transition-all"
+                                title="Delete"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Visual Layout Preview */}
+                  <div className="space-y-6">
+                    <div className="glass-premium rounded-3xl p-6 sm:p-8 space-y-5">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
+                        Layout Preview
+                      </h3>
+                      <div className="rounded-xl border border-white/5 bg-charcoal-luxury/50 p-4 min-h-[300px] flex flex-col gap-3">
+                        {sections.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center h-full my-auto text-beige-luxury/20 text-xs">
+                            <span>Wireframe will render here.</span>
+                          </div>
+                        ) : (
+                          sections.map((sec, idx) => (
+                            <div
+                              key={sec.id}
+                              className={`p-3.5 rounded-xl border transition-all ${sec.is_visible
+                                ? 'bg-gold-metallic/5 border-gold-metallic/20 text-beige-luxury'
+                                : 'bg-white/5 border-white/5 text-beige-luxury/30 line-through'
+                                }`}
+                            >
+                              <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                                <span>Section {idx + 1}: {sec.type}</span>
+                                <span className="text-gold-metallic">{sec.layout}</span>
+                              </div>
+                              <div className="text-xs font-bold mt-1 text-beige-luxury/90 truncate">{sec.title || '(No Title)'}</div>
+                              {sec.buttons && sec.buttons.length > 0 && (
+                                <div className="flex gap-1 mt-2">
+                                  {sec.buttons.map((btn, bIdx) => (
+                                    <span key={bIdx} className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[8px] text-beige-luxury/60">
+                                      {btn.text}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
         )}
       </main>
@@ -1523,6 +2440,316 @@ export default function AdminDashboard() {
                       setSelectedProject(null)
                     }}
                     className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add / Edit Section Modal Drawer */}
+      <AnimatePresence>
+        {sectionModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black-luxury/80 backdrop-blur-md flex justify-end"
+          >
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              className="w-full max-w-xl bg-charcoal-luxury border-l border-white/5 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto h-screen relative"
+            >
+              <button
+                onClick={() => setSectionModal(null)}
+                className="absolute top-6 right-6 text-beige-luxury/40 hover:text-beige-luxury"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="space-y-8 pb-10">
+                <div>
+                  <span className="text-[9px] font-bold tracking-[0.25em] text-gold-metallic uppercase block mb-1">
+                    Content Editor
+                  </span>
+                  <h3 className="text-xl font-serif font-black text-beige-luxury">
+                    {sectionModal.mode === 'add' ? 'Add Section' : 'Edit Section Details'}
+                  </h3>
+                </div>
+
+                <form onSubmit={handleSectionSave} id="section-form" className="space-y-5 text-xs">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                      Section Type
+                    </label>
+                    <select
+                      value={sectionFormData.type}
+                      onChange={(e) => setSectionFormData({ ...sectionFormData, type: e.target.value })}
+                      className="w-full px-4 py-3 bg-charcoal-luxury border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury text-xs transition-all"
+                    >
+                      <option value="hero">Hero Section</option>
+                      <option value="about">About Section</option>
+                      <option value="services">Services Section</option>
+                      <option value="portfolio">Portfolio Grid</option>
+                      <option value="testimonials">Testimonials</option>
+                      <option value="cta">CTA Section</option>
+                      <option value="custom">Custom Section</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={sectionFormData.title}
+                        onChange={(e) => setSectionFormData({ ...sectionFormData, title: e.target.value })}
+                        placeholder="e.g. Crafted to Perfection"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                        Subtitle / Tagline
+                      </label>
+                      <input
+                        type="text"
+                        value={sectionFormData.subtitle}
+                        onChange={(e) => setSectionFormData({ ...sectionFormData, subtitle: e.target.value })}
+                        placeholder="e.g. Turnkey Solutions"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                      Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={sectionFormData.description}
+                      onChange={(e) => setSectionFormData({ ...sectionFormData, description: e.target.value })}
+                      placeholder="Introductory text describing the section..."
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                      Content Body
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={sectionFormData.content}
+                      onChange={(e) => setSectionFormData({ ...sectionFormData, content: e.target.value })}
+                      placeholder="Extended detailed content body or list text..."
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all resize-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                        Layout
+                      </label>
+                      <select
+                        value={sectionFormData.layout}
+                        onChange={(e) => setSectionFormData({ ...sectionFormData, layout: e.target.value })}
+                        className="w-full px-4 py-3 bg-charcoal-luxury border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury text-xs transition-all"
+                      >
+                        <option value="full-width">Full Width</option>
+                        <option value="split">Split Screen</option>
+                        <option value="grid">Grid Layout</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50 block">
+                        Visibility
+                      </label>
+                      <div className="flex items-center h-12">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={sectionFormData.is_visible}
+                            onChange={(e) => setSectionFormData({ ...sectionFormData, is_visible: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-beige-luxury after:border-white/20 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-metallic"></div>
+                          <span className="ml-3 text-[10px] font-bold uppercase tracking-wider text-beige-luxury/60">
+                            {sectionFormData.is_visible ? 'Visible' : 'Hidden'}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                        Action Buttons
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSectionFormData(prev => ({
+                            ...prev,
+                            buttons: [...prev.buttons, { text: 'New Button', link: '/' }]
+                          }))
+                        }}
+                        className="text-[9px] font-bold text-gold-metallic uppercase tracking-wider px-2 py-1 bg-white/5 border border-white/10 rounded hover:bg-white/10"
+                      >
+                        + Add Button
+                      </button>
+                    </div>
+
+                    {sectionFormData.buttons.map((btn, btnIdx) => (
+                      <div key={btnIdx} className="flex gap-2 items-center bg-white/5 p-2 rounded-xl border border-white/5">
+                        <input
+                          type="text"
+                          required
+                          value={btn.text}
+                          onChange={(e) => {
+                            const newBtns = [...sectionFormData.buttons]
+                            newBtns[btnIdx].text = e.target.value
+                            setSectionFormData(prev => ({ ...prev, buttons: newBtns }))
+                          }}
+                          placeholder="Button Label"
+                          className="flex-1 px-3 py-2 bg-charcoal-luxury border border-white/10 rounded-lg text-beige-luxury text-xs"
+                        />
+                        <input
+                          type="text"
+                          required
+                          value={btn.link}
+                          onChange={(e) => {
+                            const newBtns = [...sectionFormData.buttons]
+                            newBtns[btnIdx].link = e.target.value
+                            setSectionFormData(prev => ({ ...prev, buttons: newBtns }))
+                          }}
+                          placeholder="/path or url"
+                          className="flex-1 px-3 py-2 bg-charcoal-luxury border border-white/10 rounded-lg text-beige-luxury text-xs font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newBtns = sectionFormData.buttons.filter((_, idx) => idx !== btnIdx)
+                            setSectionFormData(prev => ({ ...prev, buttons: newBtns }))
+                          }}
+                          className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50 block">
+                      Section Images
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <label className="w-full h-11 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-metallic/30 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all duration-300">
+                        {uploadingImage ? (
+                          <Loader2 className="animate-spin text-gold-metallic" size={14} />
+                        ) : (
+                          <Upload size={14} className="text-gold-metallic" />
+                        )}
+                        <span className="font-bold text-beige-luxury uppercase tracking-wider text-[10px]">
+                          {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          disabled={uploadingImage}
+                          onChange={handleSectionImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Or direct image URL to append"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            if (e.target.value.trim()) {
+                              setSectionFormData(prev => ({
+                                ...prev,
+                                images: [...prev.images, { url: e.target.value.trim(), key: '' }]
+                              }))
+                              e.target.value = ''
+                            }
+                          }
+                        }}
+                        className="w-full h-11 px-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all"
+                      />
+                    </div>
+
+                    {sectionFormData.images.length > 0 && (
+                      <div className="grid grid-cols-3 gap-3 pt-2">
+                        {sectionFormData.images.map((img, imgIdx) => (
+                          <div key={imgIdx} className="relative h-20 rounded-xl overflow-hidden border border-white/5 bg-white/5 group">
+                            <img src={img.url} alt={`Preview ${imgIdx}`} className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newImages = sectionFormData.images.filter((_, idx) => idx !== imgIdx)
+                                setSectionFormData(prev => ({ ...prev, images: newImages }))
+                              }}
+                              className="absolute top-1 right-1 p-0.5 bg-black-luxury/60 text-white rounded-full hover:bg-red-500 transition-colors"
+                            >
+                              <X size={10} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5 pt-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                      Custom JSON Properties (for custom key-values)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={sectionFormData.custom_json}
+                      onChange={(e) => setSectionFormData({ ...sectionFormData, custom_json: e.target.value })}
+                      placeholder='{ "myKey": "value" }'
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs font-mono transition-all resize-none"
+                    />
+                  </div>
+                </form>
+
+                <div className="pt-6 border-t border-white/5 flex gap-4">
+                  <button
+                    type="submit"
+                    form="section-form"
+                    disabled={sectionSaving || uploadingImage}
+                    className="flex-1 py-4 bg-gold-metallic hover:bg-white text-black-luxury hover:text-black-luxury font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-gold-metallic/15 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
+                  >
+                    {sectionSaving ? (
+                      <Loader2 className="animate-spin text-black-luxury" size={14} />
+                    ) : (
+                      <>
+                        <Save size={14} />
+                        <span>Save Section</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSectionModal(null)}
+                    className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 text-beige-luxury"
                   >
                     Cancel
                   </button>
