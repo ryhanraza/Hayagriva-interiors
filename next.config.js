@@ -7,6 +7,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: '376pmed2.ap-southeast.insforge.app',
+      },
     ],
   }
 }
