@@ -65,7 +65,7 @@ export default function HomeTestimonials() {
   useEffect(() => {
     const timer = setInterval(() => {
       handleNext()
-    }, 9000)
+    }, 3000)
     return () => clearInterval(timer)
   }, [i])
 

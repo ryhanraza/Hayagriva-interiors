@@ -44,7 +44,7 @@ export default function TestimonialCarousel() {
   useEffect(() => {
     const timer = setInterval(() => {
       handleNext()
-    }, 8000)
+    }, 3000)
     return () => clearInterval(timer)
   }, [i])
 
