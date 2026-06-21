@@ -1,6 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -125,7 +126,19 @@ export default function ServiceDetailPage() {
     )
   }
 
+  // Key on slug so React fully remounts this subtree on every service change.
+  // Without this, Next.js reuses the component between /services/a -> /services/b,
+  // so Framer Motion animations never replay and the page looks frozen.
+  return <ServiceDetailView key={params.slug} service={service} />
+}
+
+function ServiceDetailView({ service }) {
   const Icon = service.icon
+
+  // Reset scroll to top whenever a new service mounts
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   return (
     <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden">

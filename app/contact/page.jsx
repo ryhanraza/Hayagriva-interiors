@@ -79,7 +79,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h5 className="text-[10px] font-bold uppercase tracking-widest text-beige/40">Consultation Hours</h5>
-                    <p className="text-xs sm:text-sm mt-1.5 text-beige/85">By appointment only on Sundays.</p>
+                    <p className="text-xs sm:text-sm mt-1.5 text-beige/85">9AM to 7PM</p>
                   </div>
                 </div>
               </div>

@@ -49,11 +49,11 @@ export default function Footer() {
         <div className="md:col-span-2 space-y-4">
           <h4 className="text-xs font-bold uppercase tracking-widest text-theme-gold">Services</h4>
           <ul className="space-y-3 text-xs sm:text-sm text-theme-grey">
-            <li><Link href="/services" className="hover:text-theme-gold transition-colors">Interior Design</Link></li>
-            <li><Link href="/services" className="hover:text-theme-gold transition-colors">Modular Kitchen</Link></li>
-            <li><Link href="/services" className="hover:text-theme-gold transition-colors">Wardrobes</Link></li>
-            <li><Link href="/services" className="hover:text-theme-gold transition-colors">Living Room</Link></li>
-            <li><Link href="/services" className="hover:text-theme-gold transition-colors">Turnkey Projects</Link></li>
+            <li><Link href="/services/modular-kitchen" className="hover:text-theme-gold transition-colors">Modular Kitchen</Link></li>
+            <li><Link href="/services/bedroom" className="hover:text-theme-gold transition-colors">Bedroom Interiors</Link></li>
+            <li><Link href="/services/living-room" className="hover:text-theme-gold transition-colors">Living Room Design</Link></li>
+            <li><Link href="/services/space-planning" className="hover:text-theme-gold transition-colors">Space Planning & 3D Design</Link></li>
+            <li><Link href="/services/turnkey-solutions" className="hover:text-theme-gold transition-colors">Turnkey Interiors</Link></li>
           </ul>
         </div>
 
