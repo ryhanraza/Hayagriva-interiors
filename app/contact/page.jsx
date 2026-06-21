@@ -56,7 +56,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h5 className="text-[10px] font-bold uppercase tracking-widest text-beige/40">Phone Call</h5>
-                    <p className="text-xs sm:text-sm mt-1.5 font-bold text-beige">+91 95731 78887</p>
+                    <a href="tel:+919573178887" className="text-xs sm:text-sm mt-1.5 font-bold text-beige hover:text-gold transition-colors block">+91 95731 78887</a>
                     <p className="text-[10px] text-beige/45 mt-1 font-mono">Mon-Sat, 9:30 AM - 7:00 PM</p>
                   </div>
                 </div>
