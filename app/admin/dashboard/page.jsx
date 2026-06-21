@@ -57,6 +57,10 @@ export default function AdminDashboard() {
   // Page Content Manager States
   const [sections, setSections] = useState([])
   const [activeContentPage, setActiveContentPage] = useState('home')
+  const [customPages, setCustomPages] = useState([])
+  const [pageModal, setPageModal] = useState(null)
+  const [pageFormData, setPageFormData] = useState({ title: '', slug: '' })
+  const [pageSaving, setPageSaving] = useState(false)
   const [sectionModal, setSectionModal] = useState(null)
   const [sectionFormData, setSectionFormData] = useState({
     type: 'hero',
@@ -221,11 +225,18 @@ export default function AdminDashboard() {
       })
       const contentData = await contentRes.json()
 
+      // Fetch Custom Pages
+      const { data: customPagesData } = await insforgeClient.database
+        .from('custom_pages')
+        .select('*')
+        .order('title', { ascending: true })
+
       if (Array.isArray(contactsData)) setContacts(contactsData)
       if (Array.isArray(projectsData)) setProjects(projectsData)
       if (Array.isArray(expensesData)) setExpenses(expensesData)
       if (Array.isArray(seoData)) setSeoRows(seoData)
       if (Array.isArray(contentData)) setSections(contentData)
+      if (Array.isArray(customPagesData)) setCustomPages(customPagesData)
     } catch (err) {
       console.error('Failed to load dashboard data:', err)
       setErrorMsg('Failed to load dashboard data. Check connection.')
@@ -458,6 +469,15 @@ export default function AdminDashboard() {
 
   // ── SEO Settings handlers ──────────────────────────────────
 
+  const allPages = [
+    ...SEO_PAGES,
+    ...customPages.map((p) => ({
+      page: p.slug,
+      label: p.title,
+      path: `/${p.slug}`
+    }))
+  ]
+
   // The active draft mirrors the row for the selected page.
   // On first load (no rows yet), synthesize a blank draft from the page registry.
   const activeSeoRow = seoRows.find((r) => r.page === activeSeoPage) || null
@@ -541,6 +561,84 @@ export default function AdminDashboard() {
       const base = prev && prev.page === activeSeoPage ? prev : currentDraft
       return { ...base, page: activeSeoPage, [field]: value }
     })
+  }
+
+  // ── Custom Pages handlers ──────────────────────────────────
+  const handlePageSubmit = async (e) => {
+    e.preventDefault()
+    setPageSaving(true)
+    setErrorMsg('')
+
+    const title = pageFormData.title.trim()
+    const slug = pageFormData.slug.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '')
+
+    if (!title || !slug) {
+      setErrorMsg('Please enter a valid title and URL slug.')
+      setPageSaving(false)
+      return
+    }
+
+    const reservedSlugs = ['admin', 'api', 'blog', 'projects', 'portfolio', 'services', 'about', 'contact', 'home']
+    if (reservedSlugs.includes(slug)) {
+      setErrorMsg('This URL slug is reserved for standard system pages.')
+      setPageSaving(false)
+      return
+    }
+
+    try {
+      const { data, error } = await insforgeClient.database
+        .from('custom_pages')
+        .insert([{ title, slug }])
+        .select()
+
+      if (error) throw error
+
+      await fetchDashboardData()
+      setPageModal(null)
+      setPageFormData({ title: '', slug: '' })
+      
+      setActiveContentPage(slug)
+      setActiveSeoPage(slug)
+    } catch (err) {
+      setErrorMsg('Failed to create page: ' + err.message)
+    } finally {
+      setPageSaving(false)
+    }
+  }
+
+  const handleDeletePage = async (slug) => {
+    if (!confirm(`Are you sure you want to delete the custom page "${slug}"? This will delete all of its dynamic sections and SEO settings.`)) return
+
+    setErrorMsg('')
+    try {
+      // 1. Delete page sections from database
+      const { error: secError } = await insforgeClient.database
+        .from('page_sections')
+        .delete()
+        .eq('page', slug)
+      if (secError) throw secError
+
+      // 2. Delete SEO settings from database
+      const { error: seoError } = await insforgeClient.database
+        .from('seo_settings')
+        .delete()
+        .eq('page', slug)
+      if (seoError) throw seoError
+
+      // 3. Delete custom page registry
+      const { error } = await insforgeClient.database
+        .from('custom_pages')
+        .delete()
+        .eq('slug', slug)
+
+      if (error) throw error
+
+      await fetchDashboardData()
+      setActiveContentPage('home')
+      setActiveSeoPage('home')
+    } catch (err) {
+      setErrorMsg('Failed to delete page: ' + err.message)
+    }
   }
 
   // ── Page Content Handlers ──────────────────────────────────
@@ -1590,8 +1688,8 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Page selector tabs */}
-                <div className="flex flex-wrap gap-2">
-                  {SEO_PAGES.map((p) => {
+                <div className="flex flex-wrap items-center gap-2">
+                  {allPages.map((p) => {
                     const row = seoRows.find((r) => r.page === p.page)
                     const hasContent = row && (row.seo_title || row.meta_description)
                     return (
@@ -1613,6 +1711,18 @@ export default function AdminDashboard() {
                       </button>
                     )
                   })}
+                  
+                  {/* Add Page Button */}
+                  <button
+                    onClick={() => {
+                      setPageFormData({ title: '', slug: '' })
+                      setPageModal({ mode: 'add' })
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-md"
+                  >
+                    <Plus size={13} />
+                    <span>Add New Page</span>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-8 items-start">
@@ -1620,7 +1730,7 @@ export default function AdminDashboard() {
                   <div className="glass-premium rounded-3xl p-6 sm:p-8 space-y-6">
                     <div className="flex items-center justify-between gap-3">
                       <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
-                        {SEO_PAGES.find((p) => p.page === activeSeoPage)?.label} Page
+                        {allPages.find((p) => p.page === activeSeoPage)?.label} Page
                       </h3>
                       <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${seoIsDirty
                         ? 'bg-amber-500/10 text-amber-300 border-amber-500/25'
@@ -1694,7 +1804,7 @@ export default function AdminDashboard() {
                           type="text"
                           value={currentDraft.canonical_url}
                           onChange={(e) => updateSeoField('canonical_url', e.target.value)}
-                          placeholder={SEO_PAGES.find((p) => p.page === activeSeoPage)?.path || '/'}
+                          placeholder={allPages.find((p) => p.page === activeSeoPage)?.path || '/'}
                           className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all"
                         />
                       </div>
@@ -1839,7 +1949,7 @@ export default function AdminDashboard() {
                       </h3>
                       <div className="rounded-xl bg-white p-4 text-black/80">
                         <div className="text-[11px] text-[#202124] truncate">
-                          {`hayagrivainteriors.com${SEO_PAGES.find((p) => p.page === activeSeoPage)?.path || ''}`}
+                          {`hayagrivainteriors.com${allPages.find((p) => p.page === activeSeoPage)?.path || ''}`}
                         </div>
                         <div className="text-[#1a0dab] text-base leading-snug mt-0.5 line-clamp-1">
                           {currentDraft.seo_title || 'Hayagriva Interiors'}
@@ -1895,8 +2005,8 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Page selector tabs */}
-                <div className="flex flex-wrap gap-2">
-                  {SEO_PAGES.map((p) => (
+                <div className="flex flex-wrap items-center gap-2">
+                  {allPages.map((p) => (
                     <button
                       key={p.page}
                       onClick={() => {
@@ -1911,15 +2021,39 @@ export default function AdminDashboard() {
                       <span>{p.label}</span>
                     </button>
                   ))}
+                  
+                  {/* Add Page Button */}
+                  <button
+                    onClick={() => {
+                      setPageFormData({ title: '', slug: '' })
+                      setPageModal({ mode: 'add' })
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-md"
+                  >
+                    <Plus size={13} />
+                    <span>Add New Page</span>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-8 items-start">
                   {/* Sections List */}
                   <div className="glass-premium rounded-3xl p-6 sm:p-8 space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
-                        {SEO_PAGES.find((p) => p.page === activeContentPage)?.label} Page Sections
-                      </h3>
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-beige-luxury">
+                          {allPages.find((p) => p.page === activeContentPage)?.label} Page Sections
+                        </h3>
+                        {customPages.some((p) => p.slug === activeContentPage) && (
+                          <button
+                            onClick={() => handleDeletePage(activeContentPage)}
+                            className="flex items-center gap-1 bg-red-500/10 hover:bg-red-500/25 border border-red-500/25 text-red-400 px-2 py-1 rounded text-[9px] uppercase tracking-widest font-bold transition-all"
+                            title="Delete this custom page"
+                          >
+                            <Trash2 size={10} />
+                            <span>Delete Page</span>
+                          </button>
+                        )}
+                      </div>
                       <button
                         onClick={() => {
                           setSectionFormData({
@@ -2445,6 +2579,95 @@ export default function AdminDashboard() {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Page Modal */}
+      <AnimatePresence>
+        {pageModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black-luxury/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md bg-charcoal-luxury border border-white/10 rounded-3xl p-6 sm:p-8 space-y-6 relative shadow-2xl"
+            >
+              <button
+                onClick={() => setPageModal(null)}
+                className="absolute top-6 right-6 text-beige-luxury/40 hover:text-beige-luxury"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="space-y-2">
+                <span className="text-[9px] font-bold tracking-[0.25em] text-gold-metallic uppercase block">
+                  Page Manager
+                </span>
+                <h3 className="text-xl font-serif font-black text-beige-luxury">
+                  Create Custom Page
+                </h3>
+              </div>
+
+              <form onSubmit={handlePageSubmit} className="space-y-4 text-xs">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                    Page Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={pageFormData.title}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      const generatedSlug = val.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-')
+                      setPageFormData({ title: val, slug: generatedSlug })
+                    }}
+                    placeholder="e.g. Testimonials"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
+                    URL Slug
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 select-none font-mono">
+                      /
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={pageFormData.slug}
+                      onChange={(e) => setPageFormData({ ...pageFormData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '') })}
+                      placeholder="testimonials"
+                      className="w-full pl-8 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all font-mono"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={pageSaving}
+                  className="w-full py-3.5 bg-gold-metallic hover:bg-white text-black-luxury hover:text-black-luxury font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-gold-metallic/15 flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-300"
+                >
+                  {pageSaving ? (
+                    <Loader2 className="animate-spin text-black-luxury" size={14} />
+                  ) : (
+                    <>
+                      <PlusCircle size={14} />
+                      <span>Create Page</span>
+                    </>
+                  )}
+                </button>
+              </form>
             </motion.div>
           </motion.div>
         )}
