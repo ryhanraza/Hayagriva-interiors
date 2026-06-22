@@ -744,20 +744,6 @@ export default function Home() {
             >
               Get Free Quote
             </Link>
-            <a
-              href="#consultation"
-              onClick={(e) => {
-                e.preventDefault()
-                window.scrollTo({ top: 0, behavior: 'smooth' })
-                setTimeout(() => {
-                  const formInput = document.querySelector('input')
-                  if (formInput) formInput.focus()
-                }, 700)
-              }}
-              className="px-8 py-4 border border-white/10 hover:border-gold text-white hover:text-gold font-bold transition-all duration-500 text-xs uppercase tracking-widest rounded-full cursor-pointer"
-            >
-              Consult an Architect
-            </a>
           </div>
         </div>
       </section>
