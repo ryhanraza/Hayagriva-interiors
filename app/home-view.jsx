@@ -13,7 +13,6 @@ import {
   Utensils, 
   Bed, 
   Sofa, 
-  Phone, 
   User, 
   Sparkles, 
   ArrowUpRight,
@@ -36,6 +35,7 @@ import {
 // Import custom components
 import BeforeAfterSlider from '../components/BeforeAfterSlider'
 import HomeTestimonials from '../components/HomeTestimonials'
+import PhoneInput, { getCountryByIso, buildFullPhone } from '../components/PhoneInput'
 
 // Animated count-up component: animates from 0 to `target` when scrolled into view
 function CountUp({ target, suffix = '', duration = 2 }) {
@@ -64,10 +64,19 @@ export default function Home() {
   const [formData, setFormData] = useState({ name: '', phone: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [country, setCountry] = useState(getCountryByIso('IN'))
 
   // Handle lead form submission
   const handleLeadSubmit = async (e) => {
     e.preventDefault()
+
+    // Per-country length validation
+    const fullPhone = buildFullPhone(country, formData.phone)
+    if (!fullPhone) {
+      alert(`Please enter a valid ${country.name} phone number (${country.len} digits).`)
+      return
+    }
+
     setIsSubmitting(true)
     try {
       const res = await fetch('/api/contact', {
@@ -75,7 +84,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          phone: formData.phone,
+          phone: fullPhone,
           email: '', // Backend handles optional fields
           message: ''
         })
@@ -344,16 +353,13 @@ export default function Home() {
                   />
                 </div>
                 <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={16} />
-                  <input
-                    type="tel"
-                    inputMode="numeric"
-                    pattern="\d{7,15}"
-                    placeholder="Your Phone Number"
-                    required
+                  <PhoneInput
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
-                    className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/25 text-white placeholder-white/30 text-xs transition-all"
+                    onChange={(digits) => setFormData({ ...formData, phone: digits })}
+                    onCountryChange={setCountry}
+                    placeholder="Your Phone Number"
+                    variant="dark"
+                    defaultIso="IN"
                   />
                 </div>
                 <button

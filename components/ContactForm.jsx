@@ -2,21 +2,31 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Send, CheckCircle2, CalendarDays } from 'lucide-react'
+import PhoneInput, { getCountryByIso, buildFullPhone } from './PhoneInput'
 
 export default function ContactForm() {
   const [sent, setSent] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' })
+  const [country, setCountry] = useState(getCountryByIso('IN'))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Per-country length validation
+    const fullPhone = buildFullPhone(country, formData.phone)
+    if (!fullPhone) {
+      alert(`Please enter a valid ${country.name} phone number (${country.len} digits).`)
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, phone: fullPhone }),
       })
 
       if (!res.ok) {
@@ -35,11 +45,6 @@ export default function ContactForm() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
-
-  // Phone field: digits only
-  const handlePhoneChange = (e) => {
-    setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })
   }
 
   return (
@@ -90,19 +95,15 @@ export default function ContactForm() {
             </div>
           </div>
 
-          <div className="relative">
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handlePhoneChange}
-              inputMode="numeric"
-              pattern="\d{7,15}"
-              placeholder="Phone Number (e.g. +91 95731 78887)"
-              className="w-full px-5 py-4 bg-charcoal/5 border border-charcoal/10 rounded-xl focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/20 text-charcoal placeholder-charcoal/40 text-sm transition-all"
-              required
-            />
-          </div>
+          {/* Phone field with searchable country-code dropdown */}
+          <PhoneInput
+            value={formData.phone}
+            onChange={(digits) => setFormData({ ...formData, phone: digits })}
+            onCountryChange={setCountry}
+            placeholder="Phone Number"
+            variant="light"
+            defaultIso="IN"
+          />
 
           <div className="relative">
             <textarea
