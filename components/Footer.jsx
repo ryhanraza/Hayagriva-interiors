@@ -54,6 +54,7 @@ export default function Footer() {
             <li><Link href="/services/living-room" className="hover:text-theme-gold transition-colors">Living Room Design</Link></li>
             <li><Link href="/services/space-planning" className="hover:text-theme-gold transition-colors">Space Planning & 3D Design</Link></li>
             <li><Link href="/services/turnkey-solutions" className="hover:text-theme-gold transition-colors">Turnkey Interiors</Link></li>
+            <li><Link href="/services/renovation" className="hover:text-theme-gold transition-colors">Renovation</Link></li>
           </ul>
         </div>
 

@@ -146,6 +146,13 @@ export default function Home() {
       icon: KeyRound,
       color: 'bg-gold-light/40',
       href: '/services/turnkey-solutions'
+    },
+    {
+      title: 'Renovation',
+      desc: 'Revitalize your existing spaces with expert remodeling, structural upgrades, and aesthetic makeovers.',
+      icon: Hammer,
+      color: 'bg-gold-light/40',
+      href: '/services/renovation'
     }
   ]
 

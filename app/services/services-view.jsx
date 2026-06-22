@@ -44,6 +44,13 @@ const coreServices = [
     image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1000&auto=format&fit=crop',
     slug: 'turnkey-solutions',
     filter: ''
+  },
+  {
+    title: 'Renovation',
+    desc: 'Revitalize your existing spaces with expert remodeling and structural upgrades.',
+    image: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=1000&auto=format&fit=crop',
+    slug: 'renovation',
+    filter: ''
   }
 ]
 
@@ -83,6 +90,13 @@ const detailedServices = [
     desc: 'A single-source, hassle-free engagement where we handle every stage of your project — from concept and 3D design to procurement, civil works, carpentry, and final handover. One dedicated project manager, one timeline, one accountable team delivering your complete home, move-in ready.',
     image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop',
     features: ['Single-point project ownership', 'Design + civil + execution in-house', 'Dedicated project manager & timeline', 'Move-in ready final handover']
+  },
+  {
+    title: 'Renovation',
+    tag: 'Breathe New Life',
+    desc: 'Transform your existing home without starting from scratch. Our renovation expertise covers structural modifications, layout reconfigurations, bathroom and kitchen makeovers, flooring upgrades, and complete aesthetic overhauls. We assess the existing structure, reinforce where needed, and deliver a refreshed space that feels entirely new.',
+    image: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=1200&auto=format&fit=crop',
+    features: ['Structural modifications & layout reconfigurations', 'Kitchen & bathroom makeovers', 'Flooring, tiling & plumbing upgrades', 'Complete aesthetic overhauls & repainting']
   }
 ]
 

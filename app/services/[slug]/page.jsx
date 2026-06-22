@@ -18,7 +18,8 @@ import {
   Sparkles,
   Grid3x3,
   Sun,
-  KeyRound
+  KeyRound,
+  Hammer
 } from 'lucide-react'
 
 const servicesMap = {
@@ -106,6 +107,23 @@ const servicesMap = {
       'Move-in ready final handover'
     ],
     budget: '₹3L – ₹25L'
+  },
+  'renovation': {
+    title: 'Renovation',
+    tag: 'Breathe New Life',
+    icon: Hammer,
+    image: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=1200&auto=format&fit=crop',
+    gallery: '',
+    desc: 'Transform your existing home without starting from scratch. Our renovation expertise covers structural modifications, layout reconfigurations, bathroom and kitchen makeovers, flooring upgrades, and complete aesthetic overhauls. We assess the existing structure, reinforce where needed, and deliver a refreshed space that feels entirely new while preserving the character you love.',
+    features: [
+      'Structural modifications & layout reconfigurations',
+      'Kitchen & bathroom complete makeovers',
+      'Flooring, tiling & plumbing upgrades',
+      'Electrical rewiring & smart home integration',
+      'Aesthetic overhauls, repainting & wall treatments',
+      'Minimum disruption with phased execution'
+    ],
+    budget: '₹1L – ₹10L'
   }
 }
 
