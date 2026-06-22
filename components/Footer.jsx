@@ -62,10 +62,12 @@ export default function Footer() {
           <h4 className="text-xs font-bold uppercase tracking-widest text-theme-gold">Contact Us</h4>
           <ul className="space-y-4 text-xs sm:text-sm text-theme-grey">
             <li className="flex items-start gap-3">
-              <MapPin size={16} className="text-theme-gold shrink-0 mt-0.5" />
-              <span className="leading-relaxed text-[11px] sm:text-xs">
-                second floor, DR DEEN COMPLEX, 51-15-1/6, opposite to Tech Mahindra, Satyam Junction, KRANTHI NAGAR, Maddilapalem, Visakhapatnam, Andhra Pradesh 530013
-              </span>
+              <a href="https://www.google.com/maps/search/Hayagriva+Interiors+DR+DEEN+COMPLEX+Maddilapalem+Visakhapatnam+Andhra+Pradesh+530013" target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 group">
+                <MapPin size={16} className="text-theme-gold shrink-0 mt-0.5" />
+                <span className="leading-relaxed text-[11px] sm:text-xs group-hover:text-theme-gold transition-colors">
+                  second floor, DR DEEN COMPLEX, 51-15-1/6, opposite to Tech Mahindra, Satyam Junction, KRANTHI NAGAR, Maddilapalem, Visakhapatnam, Andhra Pradesh 530013
+                </span>
+              </a>
             </li>
             <li className="flex items-center gap-3">
               <Phone size={16} className="text-theme-gold shrink-0" />
@@ -82,25 +84,18 @@ export default function Footer() {
         <div className="md:col-span-1 space-y-4">
           <h4 className="text-xs font-bold uppercase tracking-widest text-theme-gold">Follow Us</h4>
           <div className="flex flex-col gap-3 pt-1">
-            {/* Instagram + Facebook */}
-            <div className="flex flex-row gap-3">
-              <a href="https://www.instagram.com/hayagriva_interiors?utm_source=qr&igsh=MWxydW0yd3Y4aXAzZQ==" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Instagram">
-                <Instagram size={16} />
-              </a>
-              <a href="https://www.facebook.com/share/18cmqePWNS/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Facebook">
-                <Facebook size={16} />
-              </a>
-            </div>
-            {/* YouTube + WhatsApp */}
-            <div className="flex flex-row gap-3">
-              <a href="https://youtube.com/@hayagrivainteriors" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="YouTube">
-                <Youtube size={16} />
-              </a>
-              <a href="https://wa.me/919573178887" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="WhatsApp">
-                <WhatsAppIcon size={16} />
-              </a>
-            </div>
-            {/* LinkedIn */}
+            <a href="https://www.instagram.com/hayagriva_interiors?utm_source=qr&igsh=MWxydW0yd3Y4aXAzZQ==" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Instagram">
+              <Instagram size={16} />
+            </a>
+            <a href="https://www.facebook.com/share/18cmqePWNS/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Facebook">
+              <Facebook size={16} />
+            </a>
+            <a href="https://youtube.com/@hayagrivainteriors" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="YouTube">
+              <Youtube size={16} />
+            </a>
+            <a href="https://wa.me/919573178887" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="WhatsApp">
+              <WhatsAppIcon size={16} />
+            </a>
             <a href="https://www.linkedin.com/company/hayagriva-interiors/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="LinkedIn">
               <Linkedin size={16} />
             </a>
