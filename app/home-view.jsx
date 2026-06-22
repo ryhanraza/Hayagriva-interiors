@@ -187,19 +187,19 @@ export default function Home() {
     {
       name: 'Kitchen',
       image: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=800&auto=format&fit=crop',
-      filter: 'Kitchens',
+      filter: 'Kitchen',
       tag: 'Culinary Hubs'
     },
     {
       name: 'Bedroom',
       image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop',
-      filter: 'Residential',
+      filter: 'Bedroom',
       tag: 'Serene Sanctuary'
     },
     {
       name: 'Living Room',
       image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800&auto=format&fit=crop',
-      filter: 'Residential',
+      filter: 'Living Room',
       tag: 'Grand Lounge'
     }
   ]
@@ -211,21 +211,21 @@ export default function Home() {
       type: 'Modular Kitchen',
       budget: '₹8.5 Lakhs',
       image: '/images/project-1.jpg',
-      category: 'Kitchens'
+      category: 'Kitchen'
     },
     {
       title: 'Bespoke Master Wardrobe',
       type: 'Residential Fitout',
       budget: '₹12 Lakhs',
       image: '/images/project-2.jpg',
-      category: 'Residential'
+      category: 'Bedroom'
     },
     {
       title: 'Japandi Living Lounge',
       type: 'Full Residence',
       budget: '₹22 Lakhs',
       image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop',
-      category: 'Residential'
+      category: 'Living Room'
     }
   ]
 
