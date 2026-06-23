@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import ProjectGrid from '../../components/ProjectGrid'
 import BeforeAfterSlider from '../../components/BeforeAfterSlider'
 import { motion } from 'framer-motion'
@@ -11,19 +12,38 @@ import FAQ from '../../components/FAQ'
 import { portfolioFaqs } from '../../lib/faq-data'
 
 export default function Portfolio() {
-  const [filter, setFilter] = useState('All')
   const categories = ['All', 'Kitchen', 'Bedroom', 'Living Room']
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const filterParam = searchParams.get('filter')
+
+  const [filter, setFilter] = useState(() => {
+    if (filterParam && categories.some((cat) => cat.toLowerCase() === filterParam.toLowerCase())) {
+      return categories.find((cat) => cat.toLowerCase() === filterParam.toLowerCase())
+    }
+    return 'All'
+  })
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const filterParam = params.get('filter')
-      if (filterParam && categories.some((cat) => cat.toLowerCase() === filterParam.toLowerCase())) {
-        const matchedCategory = categories.find((cat) => cat.toLowerCase() === filterParam.toLowerCase())
-        setFilter(matchedCategory)
-      }
+    if (filterParam && categories.some((cat) => cat.toLowerCase() === filterParam.toLowerCase())) {
+      const matchedCategory = categories.find((cat) => cat.toLowerCase() === filterParam.toLowerCase())
+      setFilter(matchedCategory)
+    } else if (!filterParam) {
+      setFilter('All')
     }
-  }, [])
+  }, [filterParam])
+
+  const handleFilterChange = (cat) => {
+    setFilter(cat)
+    const params = new URLSearchParams(searchParams.toString())
+    if (cat === 'All') {
+      params.delete('filter')
+    } else {
+      params.set('filter', cat)
+    }
+    const queryString = params.toString()
+    router.replace(queryString ? `/portfolio?${queryString}` : '/portfolio', { scroll: false })
+  }
 
   const standards = [
     {
@@ -80,7 +100,7 @@ export default function Portfolio() {
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setFilter(cat)}
+              onClick={() => handleFilterChange(cat)}
               className="relative px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.3em] transition-all duration-300 rounded-full border border-charcoal/10 bg-white/70 hover:border-gold/40 hover:bg-white"
               style={{ color: filter === cat ? '#FAF8F5' : '#1A1917' }}
             >

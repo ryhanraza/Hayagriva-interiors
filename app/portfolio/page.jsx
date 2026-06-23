@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import PortfolioView from './portfolio-view'
 import { getSeoForPage, buildMetadata } from '../../lib/seo'
 import { getSectionsForPage } from '../../lib/sections'
@@ -14,5 +15,9 @@ export default async function Page() {
     return <DynamicSections sections={sections} />
   }
 
-  return <PortfolioView />
+  return (
+    <Suspense fallback={null}>
+      <PortfolioView />
+    </Suspense>
+  )
 }
