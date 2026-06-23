@@ -7,6 +7,9 @@ import {
   ArrowRight,
   CheckCircle2
 } from 'lucide-react'
+import WhyChooseHayagriva from '../../components/WhyChooseHayagriva'
+import FAQ from '../../components/FAQ'
+import { servicesFaqs } from '../../lib/faq-data'
 
 // Core Services Grid Data
 const coreServices = [
@@ -271,6 +274,12 @@ export default function ServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* 5. WHY CHOOSE HAYAGRIVA */}
+      <WhyChooseHayagriva variant="light" heading="Why Homeowners Trust Hayagriva" />
+
+      {/* 6. FAQ */}
+      <FAQ faqs={servicesFaqs} variant="cream" heading="Services & Pricing Questions" />
 
     </div>
   )

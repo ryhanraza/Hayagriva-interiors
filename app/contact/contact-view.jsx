@@ -3,6 +3,9 @@
 import ContactForm from '../../components/ContactForm'
 import { motion } from 'framer-motion'
 import { MapPin, Phone, Mail, Clock } from 'lucide-react'
+import WhyChooseHayagriva from '../../components/WhyChooseHayagriva'
+import FAQ from '../../components/FAQ'
+import { contactFaqs } from '../../lib/faq-data'
 
 export default function Contact() {
   return (
@@ -127,8 +130,13 @@ export default function Contact() {
           </motion.div>
 
         </div>
-
       </div>
+
+      {/* Why Choose Hayagriva */}
+      <WhyChooseHayagriva variant="light" heading="Why Homeowners Trust Hayagriva" />
+
+      {/* FAQ */}
+      <FAQ faqs={contactFaqs} variant="cream" heading="Visiting & Contacting Us" />
     </div>
   )
 }

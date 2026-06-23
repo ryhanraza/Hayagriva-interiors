@@ -5,48 +5,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   Sparkles,
-  Star,
-  ShieldCheck,
-  Clock,
-  Layers,
-  CheckCircle2,
-  Compass,
   ArrowRight
 } from 'lucide-react'
-
-// Features Grid Data (Why Choose Us)
-const features = [
-  {
-    title: 'Experienced Designers',
-    desc: 'Senior studio designers shape each home with precise balance and refined detail.',
-    icon: Star
-  },
-  {
-    title: 'Affordable Pricing',
-    desc: 'Clear packages and value-driven sourcing keep luxury within reach without compromise.',
-    icon: ShieldCheck
-  },
-  {
-    title: 'End-to-End Service',
-    desc: 'From mood boarding to installation, we manage every moment of the design journey.',
-    icon: Layers
-  },
-  {
-    title: 'On-Time Delivery',
-    desc: 'Rigorous timelines and coordinated teams ensure projects finish on schedule.',
-    icon: Clock
-  },
-  {
-    title: 'Quality Materials',
-    desc: 'We bring premium marbles, artisan woods, and luxury fixtures into every room.',
-    icon: CheckCircle2
-  },
-  {
-    title: 'Custom Designs',
-    desc: 'Every interior is tailored to your lifestyle, layout, and lasting sense of luxury.',
-    icon: Compass
-  }
-]
+import WhyChooseHayagriva from '../../components/WhyChooseHayagriva'
+import FAQ from '../../components/FAQ'
+import { aboutFaqs } from '../../lib/faq-data'
 
 // Blog Posts Data (Design Journal)
 const blogPosts = [
@@ -191,37 +154,7 @@ export default function About() {
       </section>
 
       {/* 3. WHY CHOOSE US SECTION */}
-      <section className="py-24 px-6 bg-white border-t border-charcoal/5">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">WHY CHOOSE US</span>
-            <h2 className="text-3xl sm:text-4xl font-serif text-charcoal font-bold leading-tight">The Trusted Choice for Discerning Homeowners</h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {features.map((feature, idx) => {
-              const Icon = feature.icon
-              return (
-                <motion.div
-                  key={feature.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: idx * 0.08 }}
-                  whileHover={{ scale: 1.02 }}
-                  className="group bg-warmcream border border-charcoal/5 rounded-3xl p-8 shadow-sm hover:shadow-lg hover:border-gold/30 transition-all duration-500"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-charcoal/5 text-gold border border-charcoal/5 flex items-center justify-center mb-6 transition-all duration-500 group-hover:bg-gold group-hover:text-white">
-                    <Icon size={22} />
-                  </div>
-                  <h3 className="text-xl font-bold font-serif text-charcoal mb-3">{feature.title}</h3>
-                  <p className="text-xs sm:text-sm text-charcoal/60 leading-relaxed">{feature.desc}</p>
-                </motion.div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+      <WhyChooseHayagriva variant="light" heading="The Trusted Choice for Discerning Homeowners" />
 
       {/* 4. DESIGN JOURNAL / BLOG SECTION (REPLACES TEAM & STATS) */}
       <section id="journal" className="py-24 px-6 max-w-7xl mx-auto border-t border-charcoal/5">
@@ -282,7 +215,10 @@ export default function About() {
         </div>
       </section>
 
-      {/* 5. CTA BANNER (MATCH HOMEPAGE CTA STYLE) */}
+      {/* 5. FAQ */}
+      <FAQ faqs={aboutFaqs} variant="cream" heading="About Hayagriva Interiors" />
+
+      {/* 6. CTA BANNER (MATCH HOMEPAGE CTA STYLE) */}
       <section className="py-20 px-6 max-w-7xl mx-auto border-t border-charcoal/5">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

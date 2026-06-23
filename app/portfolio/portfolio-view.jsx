@@ -6,6 +6,9 @@ import BeforeAfterSlider from '../../components/BeforeAfterSlider'
 import { motion } from 'framer-motion'
 import { Layers, Lightbulb, Hammer, Sparkles, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import WhyChooseHayagriva from '../../components/WhyChooseHayagriva'
+import FAQ from '../../components/FAQ'
+import { portfolioFaqs } from '../../lib/faq-data'
 
 export default function Portfolio() {
   const [filter, setFilter] = useState('All')
@@ -160,7 +163,13 @@ export default function Portfolio() {
           </div>
         </div>
 
-        {/* Section 6: Full-Width Architectural CTA Banner */}
+        {/* Section 6: Why Choose Hayagriva */}
+        <WhyChooseHayagriva variant="light" heading="Why Homeowners Trust Hayagriva" />
+
+        {/* Section 7: FAQ */}
+        <FAQ faqs={portfolioFaqs} variant="cream" heading="Portfolio Questions, Answered" />
+
+        {/* Section 8: Full-Width Architectural CTA Banner */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

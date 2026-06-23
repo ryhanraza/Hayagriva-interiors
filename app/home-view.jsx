@@ -36,6 +36,9 @@ import {
 import BeforeAfterSlider from '../components/BeforeAfterSlider'
 import HomeTestimonials from '../components/HomeTestimonials'
 import PhoneInput, { getCountryByIso, buildFullPhone } from '../components/PhoneInput'
+import WhyChooseHayagriva from '../components/WhyChooseHayagriva'
+import FAQ from '../components/FAQ'
+import { homeFaqs } from '../lib/faq-data'
 
 // Animated count-up component: animates from 0 to `target` when scrolled into view
 function CountUp({ target, suffix = '', duration = 2 }) {
@@ -738,7 +741,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 9. CALL TO ACTION BANNER */}
+      {/* 9. WHY CHOOSE HAYAGRIVA */}
+      <WhyChooseHayagriva variant="light" heading="Why Homeowners Trust Hayagriva" />
+
+      {/* 10. FAQ */}
+      <FAQ faqs={homeFaqs} variant="cream" heading="Your Interior Design Questions, Answered" />
+
+      {/* 11. CALL TO ACTION BANNER */}
       <section id="consultation" className="py-24 px-6 bg-charcoal text-white relative overflow-hidden">
         {/* Decorative gold backdrop highlights */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gold/15 via-transparent to-transparent pointer-events-none" />
