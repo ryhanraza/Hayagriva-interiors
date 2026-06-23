@@ -2717,11 +2717,24 @@ export default function AdminDashboard() {
                       className="w-full px-4 py-3 bg-charcoal-luxury border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury text-xs transition-all"
                     >
                       <option value="hero">Hero Section</option>
-                      <option value="about">About Section</option>
-                      <option value="services">Services Section</option>
-                      <option value="portfolio">Portfolio Grid</option>
+                      <option value="stats">Stats / Trust Indicators</option>
+                      <option value="services-preview">Services Preview Grid</option>
+                      <option value="process-timeline">Process Timeline</option>
+                      <option value="before-after">Before / After Slider</option>
+                      <option value="room-designs">Room-wise Designs</option>
+                      <option value="featured-projects">Featured Projects</option>
+                      <option value="portfolio-grid">Portfolio Grid (Interactive Filters)</option>
+                      <option value="craft-standards">Craft / Studio Standards</option>
                       <option value="testimonials">Testimonials</option>
-                      <option value="cta">CTA Section</option>
+                      <option value="why-choose">Why Choose Us</option>
+                      <option value="faq">FAQ Accordion</option>
+                      <option value="cta">CTA Banner</option>
+                      <option value="design-journal">Design Journal / Blog</option>
+                      <option value="about-story">About / Our Story</option>
+                      <option value="services-grid">Services Grid (Portfolio Cards)</option>
+                      <option value="detailed-services">Detailed Services (Alternating)</option>
+                      <option value="pricing">Pricing Guide</option>
+                      <option value="contact">Contact Split Layout</option>
                       <option value="custom">Custom Section</option>
                     </select>
                   </div>
