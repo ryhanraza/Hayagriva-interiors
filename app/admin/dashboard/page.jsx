@@ -33,7 +33,9 @@ import {
   Save,
   RotateCcw,
   Layers,
-  EyeOff
+  EyeOff,
+  Images,
+  Link2
 } from 'lucide-react'
 import { SEO_PAGES } from '../../../lib/seo-pages'
 
@@ -107,6 +109,12 @@ export default function AdminDashboard() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+
+  // Project gallery (extra images on the same project)
+  const [galleryImages, setGalleryImages] = useState([])
+  const [galleryLoading, setGalleryLoading] = useState(false)
+  const [galleryUploading, setGalleryUploading] = useState(false)
+  const [galleryUrlInput, setGalleryUrlInput] = useState('')
 
   // Verify auth session on mount
   useEffect(() => {
@@ -355,6 +363,109 @@ export default function AdminDashboard() {
       fetchDashboardData()
     } catch (err) {
       setErrorMsg(err.message)
+    }
+  }
+
+  // --- Project Gallery (extra images) ---
+
+  // Fetch existing gallery images for a project
+  const fetchGalleryImages = async (projectId) => {
+    if (!projectId) {
+      setGalleryImages([])
+      return
+    }
+    setGalleryLoading(true)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/images`)
+      const data = await res.json()
+      setGalleryImages(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Failed to load gallery images:', err)
+      setGalleryImages([])
+    } finally {
+      setGalleryLoading(false)
+    }
+  }
+
+  // Upload a new gallery image file to storage, then persist to DB
+  const handleGalleryUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !selectedProject?.id) return
+
+    setGalleryUploading(true)
+    setErrorMsg('')
+    try {
+      const { data, error } = await insforgeClient.storage.from('images').uploadAuto(file)
+      if (error) throw error
+
+      const headers = await getHeaders()
+      const res = await fetch(`/api/admin/projects/${selectedProject.id}/images`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ image_url: data.url, image_key: data.key }),
+        credentials: 'include'
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to add gallery image')
+
+      setGalleryImages((prev) => [...prev, Array.isArray(result) ? result[0] : result])
+    } catch (err) {
+      console.error('Gallery upload failed:', err)
+      setErrorMsg('Gallery upload failed: ' + err.message)
+    } finally {
+      setGalleryUploading(false)
+      // Reset file input so the same file can be picked again
+      e.target.value = ''
+    }
+  }
+
+  // Add a gallery image by direct URL (no storage upload)
+  const handleGalleryUrlAdd = async () => {
+    const url = galleryUrlInput.trim()
+    if (!url || !selectedProject?.id) return
+
+    setGalleryUploading(true)
+    setErrorMsg('')
+    try {
+      const headers = await getHeaders()
+      const res = await fetch(`/api/admin/projects/${selectedProject.id}/images`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ image_url: url }),
+        credentials: 'include'
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to add gallery image')
+
+      setGalleryImages((prev) => [...prev, Array.isArray(result) ? result[0] : result])
+      setGalleryUrlInput('')
+    } catch (err) {
+      console.error('Gallery URL add failed:', err)
+      setErrorMsg('Gallery URL add failed: ' + err.message)
+    } finally {
+      setGalleryUploading(false)
+    }
+  }
+
+  // Remove a single gallery image
+  const handleGalleryDelete = async (imageId) => {
+    if (!imageId || !selectedProject?.id) return
+    if (!confirm('Remove this image from the gallery?')) return
+
+    setErrorMsg('')
+    try {
+      const headers = await getHeaders()
+      const res = await fetch(
+        `/api/admin/projects/${selectedProject.id}/images?imageId=${imageId}`,
+        { method: 'DELETE', headers, credentials: 'include' }
+      )
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to remove image')
+
+      setGalleryImages((prev) => prev.filter((img) => img.id !== imageId))
+    } catch (err) {
+      console.error('Gallery delete failed:', err)
+      setErrorMsg('Gallery delete failed: ' + err.message)
     }
   }
 
@@ -875,6 +986,7 @@ export default function AdminDashboard() {
       image_key: project.image_key || ''
     })
     setProjectForm('edit')
+    fetchGalleryImages(project.id)
   }
 
   const INCOME_CATEGORIES = new Set([
@@ -1312,6 +1424,8 @@ export default function AdminDashboard() {
                         image: '',
                         image_key: ''
                       })
+                      setGalleryImages([])
+                      setGalleryUrlInput('')
                       setProjectForm('add')
                     }}
                     className="self-start sm:self-center flex items-center gap-2 px-5 py-3.5 bg-gold-metallic hover:bg-white text-black-luxury hover:text-black-luxury text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-gold-metallic/15 transition-all duration-300"
@@ -2549,6 +2663,99 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
+
+                  {/* Additional Project Pictures (gallery) — only when editing an existing project */}
+                  {projectForm === 'edit' && selectedProject?.id && (
+                    <div className="space-y-3.5 pt-1.5 border-t border-white/5 pt-5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50 flex items-center gap-1.5">
+                          <Images size={12} className="text-gold-metallic" />
+                          More Pictures ({galleryImages.length})
+                        </label>
+                        <span className="text-[9px] text-beige-luxury/40 uppercase tracking-wider">
+                          Shown in project gallery
+                        </span>
+                      </div>
+
+                      {/* Upload / URL add row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label className="h-12 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-metallic/30 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all duration-300">
+                          {galleryUploading ? (
+                            <Loader2 className="animate-spin text-gold-metallic" size={16} />
+                          ) : (
+                            <Plus size={16} className="text-gold-metallic" />
+                          )}
+                          <span className="font-bold text-beige-luxury uppercase tracking-wider text-[10px]">
+                            {galleryUploading ? 'Adding...' : 'Upload Picture'}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            disabled={galleryUploading}
+                            onChange={handleGalleryUpload}
+                            className="hidden"
+                          />
+                        </label>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={galleryUrlInput}
+                            onChange={(e) => setGalleryUrlInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleGalleryUrlAdd()
+                              }
+                            }}
+                            placeholder="Or paste image URL"
+                            className="flex-1 px-4 h-12 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleGalleryUrlAdd}
+                            disabled={galleryUploading || !galleryUrlInput.trim()}
+                            className="px-4 h-12 bg-gold-metallic/20 hover:bg-gold-metallic/30 border border-gold-metallic/30 text-gold-metallic rounded-xl disabled:opacity-40 transition-all duration-300"
+                          >
+                            <Link2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Gallery thumbnails */}
+                      {galleryLoading ? (
+                        <div className="flex items-center justify-center py-6 text-beige-luxury/40">
+                          <Loader2 className="animate-spin" size={16} />
+                        </div>
+                      ) : galleryImages.length > 0 ? (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                          {galleryImages.map((img) => (
+                            <div
+                              key={img.id}
+                              className="relative rounded-xl overflow-hidden h-24 border border-white/5 bg-white/5 group"
+                            >
+                              <img
+                                src={img.image_url}
+                                alt={img.caption || 'Gallery image'}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleGalleryDelete(img.id)}
+                                className="absolute top-1.5 right-1.5 p-1 bg-black-luxury/70 text-white rounded-full border border-white/10 opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all duration-300"
+                              >
+                                <X size={11} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-beige-luxury/40 italic">
+                          No extra pictures yet. Add more photos of this project above.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </form>
 
                 <div className="pt-6 border-t border-white/5 flex gap-4">

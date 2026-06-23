@@ -1,11 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { ArrowLeft, MapPin, Layers, Calendar, DollarSign, Hammer } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, MapPin, Layers, Calendar, DollarSign, Hammer, X } from 'lucide-react'
 
-export default function ProjectDetailClient({ project }) {
+export default function ProjectDetailClient({ project, gallery = [] }) {
+  const [lightbox, setLightbox] = useState(null)
   // Parse materials list if comma-separated
   const materialsList = project.materials
     ? project.materials.split(',').map((m) => m.trim())
@@ -171,7 +173,94 @@ export default function ProjectDetailClient({ project }) {
             </div>
           </motion.div>
         </motion.div>
+
+        {/* Project Gallery — additional pictures */}
+        {gallery.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="mt-24 sm:mt-32"
+          >
+            <div className="text-center mb-12 space-y-3">
+              <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">
+                Visual Tour
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-serif text-charcoal font-bold leading-tight">
+                Project Gallery
+              </h2>
+              <p className="text-charcoal/60 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                More angles and details from this {project.category.toLowerCase()} project.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+              {gallery.map((img, idx) => (
+                <motion.button
+                  key={img.id}
+                  type="button"
+                  onClick={() => setLightbox(img)}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: idx * 0.05 }}
+                  className={`relative overflow-hidden rounded-2xl border border-charcoal/5 bg-charcoal/5 group cursor-zoom-in ${
+                    idx === 0 ? 'col-span-2 sm:col-span-2 row-span-2 aspect-[2/1] sm:aspect-square' : 'aspect-square'
+                  }`}
+                >
+                  <img
+                    src={img.image_url}
+                    alt={img.caption || `${project.title} ${idx + 1}`}
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {lightbox && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLightbox(null)}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 sm:p-10 cursor-zoom-out"
+          >
+            <button
+              type="button"
+              onClick={() => setLightbox(null)}
+              className="absolute top-5 right-5 p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full border border-white/20 transition-colors"
+            >
+              <X size={18} />
+            </button>
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-5xl aspect-[4/3] rounded-2xl overflow-hidden"
+            >
+              <img
+                src={lightbox.image_url}
+                alt={lightbox.caption || project.title}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {lightbox.caption && (
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
+                  <p className="text-white text-sm">{lightbox.caption}</p>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
