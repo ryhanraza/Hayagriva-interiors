@@ -764,6 +764,8 @@ export default function AdminDashboard() {
       const data = await res.json()
       if (Array.isArray(data)) {
         setSections(data)
+      } else {
+        console.error('fetchSections: unexpected response', data)
       }
     } catch (err) {
       console.error('Failed to fetch sections:', err)
@@ -918,7 +920,12 @@ export default function AdminDashboard() {
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Failed to save section')
 
-      await fetchSections(activeContentPage)
+      // Immediately append to local state so the list updates without waiting for refetch
+      if (sectionModal.mode === 'add' && result) {
+        setSections(prev => [...prev, result])
+      }
+      // Also refetch to ensure sync
+      fetchSections(activeContentPage)
       setSectionModal(null)
     } catch (err) {
       setErrorMsg(err.message)
@@ -1443,11 +1450,17 @@ export default function AdminDashboard() {
                       className="glass-premium rounded-2xl overflow-hidden border border-white/5 hover:border-gold-metallic/20 transition-all duration-500 flex flex-col group"
                     >
                       <div className="relative h-48 bg-white/5 overflow-hidden">
-                        <img
-                          src={p.image}
-                          alt={p.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
+                        {p.image && typeof p.image === 'string' && p.image.trim() ? (
+                          <img
+                            src={p.image}
+                            alt={p.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/30">
+                            <span className="text-[10px] uppercase tracking-widest font-bold">No Image</span>
+                          </div>
+                        )}
                         <div className="absolute top-4 left-4 bg-black-luxury/70 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 text-[9px] uppercase tracking-widest font-bold text-gold-metallic">
                           {p.category}
                         </div>
@@ -2677,8 +2690,8 @@ export default function AdminDashboard() {
                         </span>
                       </div>
 
-                      {/* Upload / URL add row */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Upload add row */}
+                      <div className="grid grid-cols-1 gap-4">
                         <label className="h-12 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-metallic/30 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all duration-300">
                           {galleryUploading ? (
                             <Loader2 className="animate-spin text-gold-metallic" size={16} />
@@ -2696,30 +2709,6 @@ export default function AdminDashboard() {
                             className="hidden"
                           />
                         </label>
-
-                        <div className="flex gap-2">
-                          <input
-                            type="url"
-                            value={galleryUrlInput}
-                            onChange={(e) => setGalleryUrlInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault()
-                                handleGalleryUrlAdd()
-                              }
-                            }}
-                            placeholder="Or paste image URL"
-                            className="flex-1 px-4 h-12 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleGalleryUrlAdd}
-                            disabled={galleryUploading || !galleryUrlInput.trim()}
-                            className="px-4 h-12 bg-gold-metallic/20 hover:bg-gold-metallic/30 border border-gold-metallic/30 text-gold-metallic rounded-xl disabled:opacity-40 transition-all duration-300"
-                          >
-                            <Link2 size={14} />
-                          </button>
-                        </div>
                       </div>
 
                       {/* Gallery thumbnails */}

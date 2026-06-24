@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, MapPin, Layers, Calendar, DollarSign, Hammer, X } from 'lucide-react'
@@ -12,6 +11,12 @@ export default function ProjectDetailClient({ project, gallery = [] }) {
   const materialsList = project.materials
     ? project.materials.split(',').map((m) => m.trim())
     : []
+
+  // Validate the project image src — must be a non-empty string
+  const validImage =
+    project.image && typeof project.image === 'string' && project.image.trim()
+      ? project.image
+      : null
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -66,14 +71,17 @@ export default function ProjectDetailClient({ project, gallery = [] }) {
               {/* Subtle image bottom overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10 pointer-events-none" />
               
-              <Image
-                src={project.image}
-                alt={project.title}
-                fill
-                priority
-                className="object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                sizes="(max-width: 1024px) 100vw, 60vw"
-              />
+              {validImage ? (
+                <img
+                  src={validImage}
+                  alt={project.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-charcoal/10 text-charcoal/30">
+                  <span className="text-[10px] uppercase tracking-widest font-bold">No Image</span>
+                </div>
+              )}
             </div>
 
             {/* Quick Stats Image Overlay */}
@@ -210,7 +218,7 @@ export default function ProjectDetailClient({ project, gallery = [] }) {
                   }`}
                 >
                   <img
-                    src={img.image_url}
+                    src={img.image_url || '/images/placeholder-1.svg'}
                     alt={img.caption || `${project.title} ${idx + 1}`}
                     loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -248,7 +256,7 @@ export default function ProjectDetailClient({ project, gallery = [] }) {
               className="relative w-full max-w-5xl aspect-[4/3] rounded-2xl overflow-hidden"
             >
               <img
-                src={lightbox.image_url}
+                src={lightbox.image_url || '/images/placeholder-1.svg'}
                 alt={lightbox.caption || project.title}
                 className="absolute inset-0 w-full h-full object-cover"
               />

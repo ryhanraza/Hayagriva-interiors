@@ -17,7 +17,12 @@ export default function ProjectGrid({ filter = 'All' }) {
         const res = await fetch('/api/projects')
         const data = await res.json()
         if (Array.isArray(data)) {
-          setProjects(data)
+          // Only keep projects that have a usable image URL
+          setProjects(
+            data.filter(
+              (p) => p && typeof p.image === 'string' && p.image.trim()
+            )
+          )
         }
       } catch (err) {
         console.error('Failed to load projects', err)
@@ -86,6 +91,10 @@ export default function ProjectGrid({ filter = 'All' }) {
         <AnimatePresence mode="popLayout">
           {displayedProjects.map((project) => {
             const aspectClass = 'aspect-[1/1]'
+            const imageSrc =
+              project.image && typeof project.image === 'string' && project.image.trim()
+                ? project.image
+                : null
 
             return (
               <motion.div
@@ -99,14 +108,20 @@ export default function ProjectGrid({ filter = 'All' }) {
                   <div className={`relative w-full ${aspectClass} overflow-hidden bg-charcoal/5`}>
 
                     {/* Project Image with Zoom Transition */}
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      fill
-                      loading="lazy"
-                      className="object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
+                    {imageSrc ? (
+                      <Image
+                        src={imageSrc}
+                        alt={project.title}
+                        fill
+                        loading="lazy"
+                        className="object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-charcoal/10 text-charcoal/30">
+                        <span className="text-[10px] uppercase tracking-widest font-bold">No Image</span>
+                      </div>
+                    )}
 
                     {/* Dark Hover Overlay */}
                     <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex flex-col justify-end p-6 sm:p-8">
