@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -229,10 +230,13 @@ export default function Navbar() {
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="group flex items-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/logo-nav.png?v=2"
+            <Image
+              src="/images/logo-nav.png"
               alt="Hayagriva Interiors"
+              width={160}
+              height={40}
+              priority
+              style={{ height: 'auto' }}
               className="h-8 sm:h-9 md:h-10 w-auto transition-all duration-300 group-hover:opacity-90"
             />
           </Link>
@@ -336,10 +340,12 @@ export default function Navbar() {
             {/* Mobile Menu Header */}
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
               <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/images/logo-nav.png"
                   alt="Hayagriva Interiors"
+                  width={120}
+                  height={32}
+                  style={{ height: 'auto' }}
                   className="h-8 w-auto"
                 />
               </Link>

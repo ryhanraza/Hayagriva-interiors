@@ -35,9 +35,28 @@ import {
   Layers,
   EyeOff,
   Images,
-  Link2
+  Link2,
+  Copy
 } from 'lucide-react'
 import { SEO_PAGES } from '../../../lib/seo-pages'
+import { SECTION_SCHEMAS, SECTION_TYPE_OPTIONS, defaultSectionData } from '../../../lib/section-schemas'
+import SectionFormBuilder from '../../../components/admin/SectionFormBuilder'
+import MediaLibrary from '../../../components/admin/MediaLibrary'
+
+/**
+ * Safely parse a fetch Response as JSON.
+ * Returns null if the response is not OK or the body is not valid JSON
+ * (e.g. an HTML error page from a crashed route).
+ */
+async function safeJson(res) {
+  const ct = res.headers.get('content-type') || ''
+  if (!ct.includes('application/json')) return null
+  try {
+    return await res.json()
+  } catch {
+    return null
+  }
+}
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -206,32 +225,32 @@ export default function AdminDashboard() {
         headers,
         credentials: 'include'
       })
-      const contactsData = await contactsRes.json()
+      const contactsData = await safeJson(contactsRes)
 
       // Fetch Projects (public route supports dynamic db seed, admin can load from there)
       const projectsRes = await fetch('/api/projects')
-      const projectsData = await projectsRes.json()
+      const projectsData = await safeJson(projectsRes)
 
       // Fetch Expenses
       const expensesRes = await fetch('/api/admin/expenses', {
         headers,
         credentials: 'include'
       })
-      const expensesData = await expensesRes.json()
+      const expensesData = await safeJson(expensesRes)
 
       // Fetch SEO settings
       const seoRes = await fetch('/api/admin/seo', {
         headers,
         credentials: 'include'
       })
-      const seoData = await seoRes.json()
+      const seoData = await safeJson(seoRes)
 
       // Fetch Page Sections
       const contentRes = await fetch(`/api/content/${activeContentPage}`, {
         headers,
         credentials: 'include'
       })
-      const contentData = await contentRes.json()
+      const contentData = await safeJson(contentRes)
 
       // Fetch Custom Pages
       const { data: customPagesData } = await insforgeClient.database
@@ -314,7 +333,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
 
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) {
         throw new Error(result.error || 'Failed to save project')
       }
@@ -355,7 +374,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
 
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) {
         throw new Error(result.error || 'Failed to delete project')
       }
@@ -377,7 +396,7 @@ export default function AdminDashboard() {
     setGalleryLoading(true)
     try {
       const res = await fetch(`/api/projects/${projectId}/images`)
-      const data = await res.json()
+      const data = await safeJson(res)
       setGalleryImages(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('Failed to load gallery images:', err)
@@ -405,7 +424,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ image_url: data.url, image_key: data.key }),
         credentials: 'include'
       })
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) throw new Error(result.error || 'Failed to add gallery image')
 
       setGalleryImages((prev) => [...prev, Array.isArray(result) ? result[0] : result])
@@ -434,7 +453,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ image_url: url }),
         credentials: 'include'
       })
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) throw new Error(result.error || 'Failed to add gallery image')
 
       setGalleryImages((prev) => [...prev, Array.isArray(result) ? result[0] : result])
@@ -459,7 +478,7 @@ export default function AdminDashboard() {
         `/api/admin/projects/${selectedProject.id}/images?imageId=${imageId}`,
         { method: 'DELETE', headers, credentials: 'include' }
       )
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) throw new Error(result.error || 'Failed to remove image')
 
       setGalleryImages((prev) => prev.filter((img) => img.id !== imageId))
@@ -482,7 +501,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
 
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) {
         throw new Error(result.error || 'Failed to delete lead')
       }
@@ -525,7 +544,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
 
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
           setErrorMsg('Session expired or unauthorized. Please sign in again.')
@@ -567,7 +586,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
 
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) {
         throw new Error(result.error || 'Failed to delete expense')
       }
@@ -650,7 +669,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(currentDraft),
         credentials: 'include'
       })
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) throw new Error(result.error || 'Failed to save SEO settings')
 
       await fetchDashboardData()
@@ -761,7 +780,7 @@ export default function AdminDashboard() {
         headers,
         credentials: 'include'
       })
-      const data = await res.json()
+      const data = await safeJson(res)
       if (Array.isArray(data)) {
         setSections(data)
       } else {
@@ -805,7 +824,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
       if (!res.ok) {
-        const errData = await res.json()
+        const errData = await safeJson(res)
         throw new Error(errData.error || 'Failed to update order')
       }
     } catch (err) {
@@ -844,7 +863,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
       if (!res.ok) {
-        const errData = await res.json()
+        const errData = await safeJson(res)
         throw new Error(errData.error || 'Failed to update order')
       }
     } catch (err) {
@@ -886,29 +905,41 @@ export default function AdminDashboard() {
     setSectionSaving(true)
     setErrorMsg('')
 
+    // Normalize custom_json: the structured builder keeps it as an object;
+    // the Advanced raw-JSON textarea may have turned it into a string.
+    let customJsonParsed = {}
+    const rawJson = sectionFormData.custom_json
+    if (rawJson && typeof rawJson === 'string' && rawJson.trim()) {
+      try {
+        customJsonParsed = JSON.parse(rawJson.trim())
+      } catch (err) {
+        setErrorMsg('Invalid custom JSON in the Advanced panel. Please correct it.')
+        setSectionSaving(false)
+        return
+      }
+    } else if (rawJson && typeof rawJson === 'object') {
+      customJsonParsed = rawJson
+    }
+
+    const payload = {
+      ...sectionFormData,
+      custom_json: customJsonParsed,
+    }
+
+    // Structured validation against the schema's required fields.
+    const validationError = validateSection(payload)
+    if (validationError) {
+      setErrorMsg(validationError)
+      setSectionSaving(false)
+      return
+    }
+
     try {
       const headers = await getHeaders()
       const method = sectionModal.mode === 'add' ? 'POST' : 'PUT'
       const url = sectionModal.mode === 'add'
         ? `/api/content/${activeContentPage}`
         : `/api/content/${activeContentPage}/${sectionModal.section.id}`
-
-      let customJsonParsed = {}
-      const rawJson = sectionFormData.custom_json
-      if (rawJson && typeof rawJson === 'string' && rawJson.trim()) {
-        try {
-          customJsonParsed = JSON.parse(rawJson.trim())
-        } catch (err) {
-          throw new Error('Invalid custom JSON format. Please correct it.')
-        }
-      } else if (rawJson && typeof rawJson === 'object') {
-        customJsonParsed = rawJson
-      }
-
-      const payload = {
-        ...sectionFormData,
-        custom_json: customJsonParsed
-      }
 
       const res = await fetch(url, {
         method,
@@ -917,7 +948,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
 
-      const result = await res.json()
+      const result = await safeJson(res)
       if (!res.ok) throw new Error(result.error || 'Failed to save section')
 
       // Immediately append to local state so the list updates without waiting for refetch
@@ -934,6 +965,7 @@ export default function AdminDashboard() {
     }
   }
 
+
   const handleSectionDelete = async (sectionId) => {
     if (!confirm('Are you sure you want to delete this section?')) return
 
@@ -947,13 +979,46 @@ export default function AdminDashboard() {
       })
 
       if (!res.ok) {
-        const errData = await res.json()
+        const errData = await safeJson(res)
         throw new Error(errData.error || 'Failed to delete section')
       }
 
       await fetchSections(activeContentPage)
     } catch (err) {
       setErrorMsg(err.message)
+    }
+  }
+
+  const handleSectionDuplicate = async (section) => {
+    setErrorMsg('')
+    try {
+      const headers = await getHeaders()
+      const payload = {
+        type: section.type,
+        title: section.title ? `${section.title} (Copy)` : '',
+        subtitle: section.subtitle || '',
+        description: section.description || '',
+        content: section.content || '',
+        layout: section.layout || 'full-width',
+        images: section.images || [],
+        buttons: section.buttons || [],
+        custom_json: section.custom_json || {},
+        is_visible: section.is_visible !== false
+      }
+
+      const res = await fetch(`/api/content/${activeContentPage}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+        credentials: 'include'
+      })
+
+      const result = await safeJson(res)
+      if (!res.ok) throw new Error(result.error || 'Failed to duplicate section')
+
+      fetchSections(activeContentPage)
+    } catch (err) {
+      setErrorMsg('Failed to duplicate section: ' + err.message)
     }
   }
 
@@ -968,13 +1033,58 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
       if (!res.ok) {
-        const errData = await res.json()
+        const errData = await safeJson(res)
         throw new Error(errData.error || 'Failed to update visibility')
       }
       await fetchSections(activeContentPage)
     } catch (err) {
       setErrorMsg('Failed to update visibility: ' + err.message)
     }
+  }
+
+  // When the admin switches section TYPE in the drawer, merge in that type's
+  // default doc (keeping common identity) so the structured form has sane
+  // empty arrays/objects instead of carrying over the previous type's shape.
+  const handleSectionTypeChange = (nextType) => {
+    const base = defaultSectionData(nextType)
+    setSectionFormData((prev) => ({
+      ...base,
+      // keep title/subtitle/description the admin may already have typed
+      title: prev.title || base.title,
+      subtitle: prev.subtitle || base.subtitle,
+      description: prev.description || base.description,
+      is_visible: prev.is_visible,
+    }))
+  }
+
+  // Validate a section doc against its schema's `required` fields, including
+  // required sub-fields inside repeatable lists. Returns an error string or ''.
+  function validateSection(doc) {
+    const schema = SECTION_SCHEMAS[doc.type]
+    if (!schema) return ''
+    const errors = []
+
+    for (const field of schema.fields) {
+      if (!field.required) continue
+      const val = field.group === 'custom_json'
+        ? doc.custom_json?.[field.key]
+        : doc[field.column || field.key]
+      if (val === undefined || val === null || String(val).trim() === '') {
+        errors.push(`${field.label} is required`)
+      }
+      // required sub-fields inside repeatable lists
+      if (field.type === 'list') {
+        const rows = field.group === 'custom_json' ? (doc.custom_json?.[field.key] || []) : (doc[field.key] || [])
+        rows.forEach((row, i) => {
+          for (const sub of field.itemFields) {
+            if (sub.required && (!row || String(row[sub.key] ?? '').trim() === '')) {
+              errors.push(`${field.label} → row ${i + 1}: ${sub.label || sub.key} is required`)
+            }
+          }
+        })
+      }
+    }
+    return errors.slice(0, 6).join(' • ')
   }
 
   // Open edit project drawer
@@ -1113,6 +1223,17 @@ export default function AdminDashboard() {
             >
               <Search size={16} />
               <span>SEO Settings</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('media')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${activeTab === 'media'
+                ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
+                : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
+                }`}
+            >
+              <Images size={16} />
+              <span>Media Library</span>
             </button>
 
             <button
@@ -2183,18 +2304,7 @@ export default function AdminDashboard() {
                       </div>
                       <button
                         onClick={() => {
-                          setSectionFormData({
-                            type: 'hero',
-                            title: '',
-                            subtitle: '',
-                            description: '',
-                            content: '',
-                            layout: 'full-width',
-                            images: [],
-                            buttons: [],
-                            custom_json: '',
-                            is_visible: true
-                          })
+                          setSectionFormData(defaultSectionData('hero'))
                           setSectionModal({ mode: 'add' })
                         }}
                         className="flex items-center gap-1.5 px-3.5 py-2 bg-gold-metallic hover:bg-white text-black-luxury font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md"
@@ -2300,7 +2410,7 @@ export default function AdminDashboard() {
                                     layout: sec.layout || 'full-width',
                                     images: sec.images || [],
                                     buttons: sec.buttons || [],
-                                    custom_json: sec.custom_json ? JSON.stringify(sec.custom_json, null, 2) : '',
+                                    custom_json: sec.custom_json || {},
                                     is_visible: sec.is_visible !== false
                                   })
                                   setSectionModal({ mode: 'edit', section: sec })
@@ -2309,6 +2419,16 @@ export default function AdminDashboard() {
                                 title="Edit"
                               >
                                 <Edit3 size={13} />
+                              </button>
+
+                              {/* Duplicate */}
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); handleSectionDuplicate(sec) }}
+                                className="p-1.5 rounded-lg bg-white/5 border border-white/5 text-beige-luxury/60 hover:text-gold-metallic hover:border-gold-metallic/25 transition-all"
+                                title="Duplicate"
+                              >
+                                <Copy size={13} />
                               </button>
 
                               {/* Delete */}
@@ -2368,6 +2488,19 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {/* Media Library Workspace */}
+            {activeTab === 'media' && (
+              <motion.div
+                key="media"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="space-y-8"
+              >
+                <MediaLibrary />
               </motion.div>
             )}
           </AnimatePresence>
@@ -2903,263 +3036,98 @@ export default function AdminDashboard() {
                 </div>
 
                 <form onSubmit={handleSectionSave} id="section-form" className="space-y-5 text-xs">
+                  {/* Section type selector */}
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
                       Section Type
                     </label>
                     <select
                       value={sectionFormData.type}
-                      onChange={(e) => setSectionFormData({ ...sectionFormData, type: e.target.value })}
+                      onChange={(e) => handleSectionTypeChange(e.target.value)}
                       className="w-full px-4 py-3 bg-charcoal-luxury border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury text-xs transition-all"
                     >
-                      <option value="hero">Hero Section</option>
-                      <option value="stats">Stats / Trust Indicators</option>
-                      <option value="services-preview">Services Preview Grid</option>
-                      <option value="process-timeline">Process Timeline</option>
-                      <option value="before-after">Before / After Slider</option>
-                      <option value="room-designs">Room-wise Designs</option>
-                      <option value="featured-projects">Featured Projects</option>
-                      <option value="portfolio-grid">Portfolio Grid (Interactive Filters)</option>
-                      <option value="craft-standards">Craft / Studio Standards</option>
-                      <option value="testimonials">Testimonials</option>
-                      <option value="why-choose">Why Choose Us</option>
-                      <option value="faq">FAQ Accordion</option>
-                      <option value="cta">CTA Banner</option>
-                      <option value="design-journal">Design Journal / Blog</option>
-                      <option value="about-story">About / Our Story</option>
-                      <option value="services-grid">Services Grid (Portfolio Cards)</option>
-                      <option value="detailed-services">Detailed Services (Alternating)</option>
-                      <option value="pricing">Pricing Guide</option>
-                      <option value="contact">Contact Split Layout</option>
-                      <option value="custom">Custom Section</option>
+                      {SECTION_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
                     </select>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={sectionFormData.title}
-                        onChange={(e) => setSectionFormData({ ...sectionFormData, title: e.target.value })}
-                        placeholder="e.g. Crafted to Perfection"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
-                        Subtitle / Tagline
-                      </label>
-                      <input
-                        type="text"
-                        value={sectionFormData.subtitle}
-                        onChange={(e) => setSectionFormData({ ...sectionFormData, subtitle: e.target.value })}
-                        placeholder="e.g. Turnkey Solutions"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
-                      Description
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={sectionFormData.description}
-                      onChange={(e) => setSectionFormData({ ...sectionFormData, description: e.target.value })}
-                      placeholder="Introductory text describing the section..."
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all resize-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
-                      Content Body
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={sectionFormData.content}
-                      onChange={(e) => setSectionFormData({ ...sectionFormData, content: e.target.value })}
-                      placeholder="Extended detailed content body or list text..."
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/30 text-xs transition-all resize-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
-                        Layout
-                      </label>
-                      <select
-                        value={sectionFormData.layout}
-                        onChange={(e) => setSectionFormData({ ...sectionFormData, layout: e.target.value })}
-                        className="w-full px-4 py-3 bg-charcoal-luxury border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury text-xs transition-all"
-                      >
-                        <option value="full-width">Full Width</option>
-                        <option value="split">Split Screen</option>
-                        <option value="grid">Grid Layout</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50 block">
-                        Visibility
-                      </label>
-                      <div className="flex items-center h-12">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={sectionFormData.is_visible}
-                            onChange={(e) => setSectionFormData({ ...sectionFormData, is_visible: e.target.checked })}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-beige-luxury after:border-white/20 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-metallic"></div>
-                          <span className="ml-3 text-[10px] font-bold uppercase tracking-wider text-beige-luxury/60">
-                            {sectionFormData.is_visible ? 'Visible' : 'Hidden'}
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 pt-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
-                        Action Buttons
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSectionFormData(prev => ({
-                            ...prev,
-                            buttons: [...prev.buttons, { text: 'New Button', link: '/' }]
-                          }))
-                        }}
-                        className="text-[9px] font-bold text-gold-metallic uppercase tracking-wider px-2 py-1 bg-white/5 border border-white/10 rounded hover:bg-white/10"
-                      >
-                        + Add Button
-                      </button>
-                    </div>
-
-                    {sectionFormData.buttons.map((btn, btnIdx) => (
-                      <div key={btnIdx} className="flex gap-2 items-center bg-white/5 p-2 rounded-xl border border-white/5">
-                        <input
-                          type="text"
-                          required
-                          value={btn.text}
-                          onChange={(e) => {
-                            const newBtns = [...sectionFormData.buttons]
-                            newBtns[btnIdx].text = e.target.value
-                            setSectionFormData(prev => ({ ...prev, buttons: newBtns }))
-                          }}
-                          placeholder="Button Label"
-                          className="flex-1 px-3 py-2 bg-charcoal-luxury border border-white/10 rounded-lg text-beige-luxury text-xs"
-                        />
-                        <input
-                          type="text"
-                          required
-                          value={btn.link}
-                          onChange={(e) => {
-                            const newBtns = [...sectionFormData.buttons]
-                            newBtns[btnIdx].link = e.target.value
-                            setSectionFormData(prev => ({ ...prev, buttons: newBtns }))
-                          }}
-                          placeholder="/path or url"
-                          className="flex-1 px-3 py-2 bg-charcoal-luxury border border-white/10 rounded-lg text-beige-luxury text-xs font-mono"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newBtns = sectionFormData.buttons.filter((_, idx) => idx !== btnIdx)
-                            setSectionFormData(prev => ({ ...prev, buttons: newBtns }))
-                          }}
-                          className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="space-y-3 pt-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50 block">
-                      Section Images
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <label className="w-full h-11 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-metallic/30 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all duration-300">
-                        {uploadingImage ? (
-                          <Loader2 className="animate-spin text-gold-metallic" size={14} />
-                        ) : (
-                          <Upload size={14} className="text-gold-metallic" />
-                        )}
-                        <span className="font-bold text-beige-luxury uppercase tracking-wider text-[10px]">
-                          {uploadingImage ? 'Uploading...' : 'Upload Image'}
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          disabled={uploadingImage}
-                          onChange={handleSectionImageUpload}
-                          className="hidden"
-                        />
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Or direct image URL to append"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            if (e.target.value.trim()) {
-                              setSectionFormData(prev => ({
-                                ...prev,
-                                images: [...prev.images, { url: e.target.value.trim(), key: '' }]
-                              }))
-                              e.target.value = ''
-                            }
-                          }
-                        }}
-                        className="w-full h-11 px-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs transition-all"
-                      />
-                    </div>
-
-                    {sectionFormData.images.length > 0 && (
-                      <div className="grid grid-cols-3 gap-3 pt-2">
-                        {sectionFormData.images.map((img, imgIdx) => (
-                          <div key={imgIdx} className="relative h-20 rounded-xl overflow-hidden border border-white/5 bg-white/5 group">
-                            <img src={img.url} alt={`Preview ${imgIdx}`} className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newImages = sectionFormData.images.filter((_, idx) => idx !== imgIdx)
-                                setSectionFormData(prev => ({ ...prev, images: newImages }))
-                              }}
-                              className="absolute top-1 right-1 p-0.5 bg-black-luxury/60 text-white rounded-full hover:bg-red-500 transition-colors"
-                            >
-                              <X size={10} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+                    {SECTION_SCHEMAS[sectionFormData.type]?.description && (
+                      <p className="text-[9px] text-beige-luxury/35 leading-tight">
+                        {SECTION_SCHEMAS[sectionFormData.type].description}
+                      </p>
                     )}
                   </div>
 
-                  <div className="space-y-1.5 pt-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50">
-                      Custom JSON Properties (for custom key-values)
+                  {/* Visibility toggle */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50 block">
+                      Visibility
                     </label>
-                    <textarea
-                      rows={3}
-                      value={sectionFormData.custom_json}
-                      onChange={(e) => setSectionFormData({ ...sectionFormData, custom_json: e.target.value })}
-                      placeholder='{ "myKey": "value" }'
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs font-mono transition-all resize-none"
-                    />
+                    <div className="flex items-center h-12">
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={sectionFormData.is_visible}
+                          onChange={(e) => setSectionFormData({ ...sectionFormData, is_visible: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-beige-luxury after:border-white/20 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-metallic"></div>
+                        <span className="ml-3 text-[10px] font-bold uppercase tracking-wider text-beige-luxury/60">
+                          {sectionFormData.is_visible ? 'Visible' : 'Hidden'}
+                        </span>
+                      </label>
+                    </div>
                   </div>
+
+                  {/* Type-specific structured fields */}
+                  <SectionFormBuilder
+                    schema={SECTION_SCHEMAS[sectionFormData.type]}
+                    value={sectionFormData}
+                    onChange={setSectionFormData}
+                    onUploadImages={async (files) => {
+                      const newImages = []
+                      for (let i = 0; i < files.length; i++) {
+                        // Reuse the existing storage upload helper pattern
+                        const { data, error } = await insforgeClient.storage
+                          .from('images')
+                          .uploadAuto(files[i])
+                        if (error) throw error
+                        if (data) newImages.push({ url: data.url, key: data.key })
+                      }
+                      return newImages
+                    }}
+                    uploading={uploadingImage}
+                  />
+
+                  {/* Advanced / raw JSON panel (collapsible) */}
+                  <details className="border-t border-white/5 pt-4 mt-2">
+                    <summary className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/40 cursor-pointer hover:text-beige-luxury/60 transition-colors select-none">
+                      Advanced — raw JSON editor
+                    </summary>
+                    <div className="mt-3 space-y-1.5">
+                      <p className="text-[9px] text-beige-luxury/30">
+                        Edits here are two-way synced with the structured fields above. Use for unmapped keys or bulk paste.
+                      </p>
+                      <textarea
+                        rows={6}
+                        value={
+                          typeof sectionFormData.custom_json === 'object'
+                            ? JSON.stringify(sectionFormData.custom_json, null, 2)
+                            : sectionFormData.custom_json || ''
+                        }
+                        onChange={(e) => {
+                          try {
+                            const parsed = JSON.parse(e.target.value)
+                            setSectionFormData({ ...sectionFormData, custom_json: parsed })
+                          } catch {
+                            // Allow the admin to type freely; validate on save
+                            setSectionFormData({ ...sectionFormData, custom_json: e.target.value })
+                          }
+                        }}
+                        placeholder='{ "myKey": "value" }'
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic focus:ring-1 focus:ring-gold-metallic/20 text-beige-luxury placeholder-white/25 text-xs font-mono transition-all resize-none"
+                      />
+                    </div>
+                  </details>
                 </form>
 
                 <div className="pt-6 border-t border-white/5 flex gap-4">

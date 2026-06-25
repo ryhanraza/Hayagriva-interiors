@@ -2,6 +2,7 @@ import { insforge } from '../../../../lib/insforge'
 import { verifyAdmin } from '../../../../lib/admin-auth'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {

@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Instagram, Youtube, Linkedin, Facebook, Mail, Phone, MapPin } from 'lucide-react'
 
 function WhatsAppIcon({ size = 16 }) {
@@ -18,10 +19,12 @@ export default function Footer() {
         {/* Branding Column */}
         <div className="md:col-span-4 space-y-4">
           <Link href="/" className="block">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/images/logo-footer.png"
               alt="Hayagriva Interiors"
+              width={200}
+              height={56}
+              style={{ height: 'auto' }}
               className="h-14 w-auto"
             />
           </Link>
