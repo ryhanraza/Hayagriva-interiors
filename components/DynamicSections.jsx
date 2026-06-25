@@ -13,13 +13,15 @@ export default function DynamicSections({ sections }) {
   if (!sections || sections.length === 0) return null
 
   return (
-    <div className="space-y-0">
-      {sections.map((section, idx) => {
-        if (section.is_visible === false) return null
+    <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden">
+      <div className="space-y-0">
+        {sections.map((section, idx) => {
+          if (section.is_visible === false) return null
 
-        const Renderer = SECTION_RENDERERS[section.type] || SECTION_RENDERERS.custom
-        return <Renderer key={section.id || idx} section={section} />
-      })}
+          const Renderer = SECTION_RENDERERS[section.type] || SECTION_RENDERERS.custom
+          return <Renderer key={section.id || idx} section={section} />
+        })}
+      </div>
     </div>
   )
 }
