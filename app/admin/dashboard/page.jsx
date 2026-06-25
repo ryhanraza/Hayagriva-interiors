@@ -2401,6 +2401,12 @@ export default function AdminDashboard() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation()
+                                  // Ensure custom_json is always a plain object, even if the DB returns it as a JSON string
+                                  let parsedCj = sec.custom_json
+                                  if (typeof parsedCj === 'string') {
+                                    try { parsedCj = JSON.parse(parsedCj) } catch { parsedCj = {} }
+                                  }
+                                  if (!parsedCj || typeof parsedCj !== 'object' || Array.isArray(parsedCj)) parsedCj = {}
                                   setSectionFormData({
                                     type: sec.type,
                                     title: sec.title || '',
@@ -2408,9 +2414,9 @@ export default function AdminDashboard() {
                                     description: sec.description || '',
                                     content: sec.content || '',
                                     layout: sec.layout || 'full-width',
-                                    images: sec.images || [],
-                                    buttons: sec.buttons || [],
-                                    custom_json: sec.custom_json || {},
+                                    images: Array.isArray(sec.images) ? sec.images : [],
+                                    buttons: Array.isArray(sec.buttons) ? sec.buttons : [],
+                                    custom_json: parsedCj,
                                     is_visible: sec.is_visible !== false
                                   })
                                   setSectionModal({ mode: 'edit', section: sec })

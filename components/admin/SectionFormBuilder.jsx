@@ -30,10 +30,21 @@ const labelBase =
   'text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50'
 
 // ── Get / set helpers that abstract the storage location ───────
+
+/** Safely parse custom_json: if it arrives as a JSON string from the DB, convert it to an object. */
+function parseCustomJson(cj) {
+  if (!cj) return {}
+  if (typeof cj === 'string') {
+    try { return JSON.parse(cj) } catch { return {} }
+  }
+  if (typeof cj === 'object' && !Array.isArray(cj)) return cj
+  return {}
+}
+
 function readField(value, field) {
   if (field.column) return value[field.column]
   if (field.group === 'custom_json') {
-    const cj = value.custom_json || {}
+    const cj = parseCustomJson(value.custom_json)
     return cj[field.key]
   }
   return value[field.key]
@@ -42,7 +53,8 @@ function readField(value, field) {
 function setField(value, field, next) {
   if (field.column) return { ...value, [field.column]: next }
   if (field.group === 'custom_json') {
-    return { ...value, custom_json: { ...(value.custom_json || {}), [field.key]: next } }
+    const cj = parseCustomJson(value.custom_json)
+    return { ...value, custom_json: { ...cj, [field.key]: next } }
   }
   return { ...value, [field.key]: next }
 }
@@ -426,7 +438,7 @@ function RepeatableListField({ field, raw, onChange, labelEl, onUploadImages, up
                   <FieldRenderer
                     field={{ ...sub, label: sub.label || sub.key }}
                     value={item}
-                    onChange={(nextItem) => updateItem(idx, nextItem)}
+                    onChange={(nextVal) => updateItem(idx, { ...item, [sub.key]: nextVal })}
                     onUploadImages={onUploadImages}
                     uploading={uploading}
                   />
