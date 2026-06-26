@@ -1,5 +1,6 @@
 import { insforge } from '../../../../lib/insforge'
 import { verifyAdmin } from '../../../../lib/admin-auth'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -49,8 +50,11 @@ export async function GET(request, { params }) {
 // ── POST /api/content/[page] ──────────────────────────
 // Add a new section to a page (Admin only)
 export async function POST(request, { params }) {
+  console.log('[API] POST /api/content/[page] — entry')
+
   const auth = await verifyAdmin(request)
   if (auth.error) {
+    console.warn('[API] POST /api/content/[page] — auth failed:', auth.error)
     return json({ error: auth.error }, auth.status)
   }
 
@@ -59,8 +63,10 @@ export async function POST(request, { params }) {
     if (!page) {
       return json({ error: 'Page identifier is required.' }, 400)
     }
+    console.log('[API] POST /api/content — page:', page)
 
     const body = await request.json()
+    console.log('[API] POST /api/content — payload type:', body?.type)
     const { type, title, subtitle, description, content, images, buttons, layout, custom_json, is_visible } = body
 
     if (!type) {
@@ -68,12 +74,14 @@ export async function POST(request, { params }) {
     }
 
     // Fetch existing sections to determine order
+    console.log('[API] POST /api/content — fetching existing sections for order calculation')
     const { data: existing, error: fetchErr } = await insforge.database
       .from('page_sections')
       .select('section_order')
       .eq('page', page)
 
     if (fetchErr) {
+      console.error('[API] POST /api/content — fetch existing error:', fetchErr.message)
       return json({ error: fetchErr.message }, 500)
     }
 
@@ -82,6 +90,7 @@ export async function POST(request, { params }) {
       const maxOrder = Math.max(...existing.map(s => s.section_order || 0))
       nextOrder = maxOrder + 1
     }
+    console.log('[API] POST /api/content — next section_order:', nextOrder)
 
     const row = {
       page,
@@ -100,17 +109,31 @@ export async function POST(request, { params }) {
       updated_at: new Date().toISOString()
     }
 
+    console.log('[API] POST /api/content — inserting row into page_sections')
     const { data, error } = await insforge.database
       .from('page_sections')
       .insert([row])
       .select()
 
     if (error) {
+      console.error('[API] POST /api/content — DB insert error:', error.message)
       return json({ error: error.message }, 500)
+    }
+
+    console.log('[API] POST /api/content — insert success, id:', data[0]?.id)
+
+    // Bust the Next.js page cache so the public site shows the new section immediately
+    try {
+      const pagePath = page === 'home' ? '/' : `/${page}`
+      revalidatePath(pagePath)
+      console.log('[API] POST /api/content — revalidated path:', pagePath)
+    } catch (rvErr) {
+      console.warn('[API] POST /api/content — revalidatePath failed (non-fatal):', rvErr.message)
     }
 
     return json(data[0], 201)
   } catch (err) {
+    console.error('[API] POST /api/content — unexpected error:', err.message)
     return json({ error: err.message }, 500)
   }
 }

@@ -100,6 +100,8 @@ export default function AdminDashboard() {
     is_visible: true
   })
   const [sectionSaving, setSectionSaving] = useState(false)
+  const [sectionSavedAt, setSectionSavedAt] = useState(null)
+  const [sectionModalError, setSectionModalError] = useState('')
   const [sectionOrdering, setSectionOrdering] = useState(false)
   const [draggedIndex, setDraggedIndex] = useState(null)
 
@@ -186,7 +188,9 @@ export default function AdminDashboard() {
     checkSession()
   }, [router])
 
-  // Get authentication token helper
+  // Get authentication token helper.
+  // Wraps getCurrentUser() in a 5-second timeout so a slow/unreachable
+  // Insforge backend can never leave the UI in a permanent loading state.
   async function getHeaders() {
     // Prefer the active in-memory token from the client
     let accessToken = insforgeClient.auth.tokenManager.getAccessToken()
@@ -199,14 +203,24 @@ export default function AdminDashboard() {
       }
     }
 
-    // If still no token, try to getCurrentUser to trigger automatic cookie-based refresh
+    // If still no token, try getCurrentUser with a 5 s timeout so we never
+    // block the UI indefinitely if the backend is slow or unreachable.
     if (!accessToken) {
-      const { data, error } = await insforgeClient.auth.getCurrentUser()
-      if (!error && data?.user) {
-        accessToken = insforgeClient.auth.tokenManager.getAccessToken()
-        if (accessToken && typeof window !== 'undefined') {
-          window.localStorage.setItem('hayagriva_admin_access_token', accessToken)
+      try {
+        const { data, error } = await Promise.race([
+          insforgeClient.auth.getCurrentUser(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Auth token refresh timed out')), 5000)
+          )
+        ])
+        if (!error && data?.user) {
+          accessToken = insforgeClient.auth.tokenManager.getAccessToken()
+          if (accessToken && typeof window !== 'undefined') {
+            window.localStorage.setItem('hayagriva_admin_access_token', accessToken)
+          }
         }
+      } catch (timeoutErr) {
+        console.warn('[getHeaders] getCurrentUser timed out or failed:', timeoutErr.message)
       }
     }
 
@@ -1036,7 +1050,10 @@ export default function AdminDashboard() {
   const handleSectionSave = async (e) => {
     e.preventDefault()
     setSectionSaving(true)
+    setSectionSavedAt(null)
+    setSectionModalError('')
     setErrorMsg('')
+    console.log('[Dashboard] handleSectionSave — mode:', sectionModal?.mode, 'page:', activeContentPage)
 
     // Normalize custom_json: the structured builder keeps it as an object;
     // the Advanced raw-JSON textarea may have turned it into a string.
@@ -1046,7 +1063,8 @@ export default function AdminDashboard() {
       try {
         customJsonParsed = JSON.parse(rawJson.trim())
       } catch (err) {
-        setErrorMsg('Invalid custom JSON in the Advanced panel. Please correct it.')
+        console.warn('[Dashboard] handleSectionSave — invalid JSON in advanced panel')
+        setSectionModalError('Invalid custom JSON in the Advanced panel. Please correct it before saving.')
         setSectionSaving(false)
         return
       }
@@ -1062,17 +1080,23 @@ export default function AdminDashboard() {
     // Structured validation against the schema's required fields.
     const validationError = validateSection(payload)
     if (validationError) {
-      setErrorMsg(validationError)
+      console.warn('[Dashboard] handleSectionSave — validation failed:', validationError)
+      setSectionModalError(validationError)
       setSectionSaving(false)
       return
     }
 
     try {
+      console.log('[Dashboard] handleSectionSave — acquiring auth headers')
       const headers = await getHeaders()
+
       const method = sectionModal.mode === 'add' ? 'POST' : 'PUT'
       const url = sectionModal.mode === 'add'
         ? `/api/content/${activeContentPage}`
         : `/api/content/${activeContentPage}/${sectionModal.section.id}`
+
+      console.log('[Dashboard] handleSectionSave — sending', method, url)
+      console.log('[Dashboard] handleSectionSave — payload keys:', Object.keys(payload).join(', '))
 
       const res = await fetch(url, {
         method,
@@ -1081,18 +1105,29 @@ export default function AdminDashboard() {
         credentials: 'include'
       })
 
+      console.log('[Dashboard] handleSectionSave — response status:', res.status)
       const result = await safeJson(res)
-      if (!res.ok) throw new Error(result.error || 'Failed to save section')
+      console.log('[Dashboard] handleSectionSave — response body:', result)
+
+      // Use optional chaining: result may be null if the server returned a non-JSON
+      // error body (e.g. an HTML 500 page from a crashed route).
+      if (!res.ok) {
+        throw new Error(result?.error || `Server error ${res.status}: Failed to save section`)
+      }
+
+      console.log('[Dashboard] handleSectionSave — success!')
 
       // Immediately append to local state so the list updates without waiting for refetch
       if (sectionModal.mode === 'add' && result) {
         setSections(prev => [...prev, result])
       }
-      // Also refetch to ensure sync
+      // Refetch to ensure full sync with DB
       fetchSections(activeContentPage)
+      setSectionSavedAt(Date.now())
       setSectionModal(null)
     } catch (err) {
-      setErrorMsg(err.message)
+      console.error('[Dashboard] handleSectionSave — error:', err.message)
+      setSectionModalError(err.message)
     } finally {
       setSectionSaving(false)
     }
@@ -1415,6 +1450,10 @@ export default function AdminDashboard() {
               <X size={14} />
             </button>
           </div>
+        )}
+
+        {sectionSavedAt && (
+          <SectionSavedBanner savedAt={sectionSavedAt} onDismiss={() => setSectionSavedAt(null)} />
         )}
 
         {loadingData ? (
@@ -3264,7 +3303,7 @@ export default function AdminDashboard() {
               className="w-full max-w-xl bg-charcoal-luxury border-l border-white/5 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto h-screen relative"
             >
               <button
-                onClick={() => setSectionModal(null)}
+                onClick={() => { setSectionModal(null); setSectionModalError('') }}
                 className="absolute top-6 right-6 text-beige-luxury/40 hover:text-beige-luxury"
               >
                 <X size={20} />
@@ -3375,6 +3414,21 @@ export default function AdminDashboard() {
                   </details>
                 </form>
 
+                {/* Error banner — rendered inside the modal so it's always visible */}
+                {sectionModalError && (
+                  <div className="mx-0 p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 flex items-start gap-2.5 text-red-200 text-xs leading-relaxed">
+                    <ShieldAlert className="stroke-red-400 shrink-0 mt-0.5" size={14} />
+                    <span className="flex-1">{sectionModalError}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSectionModalError('')}
+                      className="text-red-400 hover:text-white shrink-0"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
+
                 <div className="pt-6 border-t border-white/5 flex gap-4">
                   <button
                     type="submit"
@@ -3393,7 +3447,7 @@ export default function AdminDashboard() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSectionModal(null)}
+                    onClick={() => { setSectionModal(null); setSectionModalError('') }}
                     className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 text-beige-luxury"
                   >
                     Cancel
@@ -3404,6 +3458,33 @@ export default function AdminDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  )
+}
+
+// ── SectionSavedBanner ────────────────────────────────────────────
+// A self-dismissing success notification shown after a section is saved.
+// Consistent with the SEO savedAt pattern already used in this dashboard.
+function SectionSavedBanner({ savedAt, onDismiss }) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 4000)
+    return () => clearTimeout(t)
+  }, [savedAt, onDismiss])
+
+  return (
+    <div className="mb-6 p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between gap-3 text-emerald-200 text-xs">
+      <div className="flex items-center gap-2">
+        <CheckCircle className="stroke-emerald-400 shrink-0" size={16} />
+        <span className="font-semibold">
+          Section saved successfully —{' '}
+          <span className="opacity-60">
+            {new Date(savedAt).toLocaleTimeString('en-IN')}
+          </span>
+        </span>
+      </div>
+      <button onClick={onDismiss} className="text-emerald-400 hover:text-white">
+        <X size={14} />
+      </button>
     </div>
   )
 }

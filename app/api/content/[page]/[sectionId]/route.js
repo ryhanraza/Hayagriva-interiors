@@ -1,5 +1,6 @@
 import { insforge } from '../../../../../lib/insforge'
 import { verifyAdmin } from '../../../../../lib/admin-auth'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -14,8 +15,11 @@ function json(data, status = 200) {
 // ── PUT /api/content/[page]/[sectionId] ───────────────
 // Update a specific section's properties (Admin only)
 export async function PUT(request, { params }) {
+  console.log('[API] PUT /api/content/[page]/[sectionId] — entry')
+
   const auth = await verifyAdmin(request)
   if (auth.error) {
+    console.warn('[API] PUT — auth failed:', auth.error)
     return json({ error: auth.error }, auth.status)
   }
 
@@ -24,8 +28,10 @@ export async function PUT(request, { params }) {
     if (!page || !sectionId) {
       return json({ error: 'Page identifier and Section ID are required.' }, 400)
     }
+    console.log('[API] PUT — page:', page, 'sectionId:', sectionId)
 
     const body = await request.json()
+    console.log('[API] PUT — fields to update:', Object.keys(body).join(', '))
     const { type, title, subtitle, description, content, images, buttons, layout, custom_json, is_visible } = body
 
     // Optional field cleanup: find if old images need to be deleted
@@ -67,6 +73,7 @@ export async function PUT(request, { params }) {
     if (custom_json !== undefined) fieldsToUpdate.custom_json = custom_json
     if (is_visible !== undefined) fieldsToUpdate.is_visible = is_visible
 
+    console.log('[API] PUT — running DB update on page_sections')
     const { data, error } = await insforge.database
       .from('page_sections')
       .update(fieldsToUpdate)
@@ -75,15 +82,29 @@ export async function PUT(request, { params }) {
       .select()
 
     if (error) {
+      console.error('[API] PUT — DB update error:', error.message)
       return json({ error: error.message }, 500)
     }
 
     if (!data || data.length === 0) {
+      console.warn('[API] PUT — no rows updated for sectionId:', sectionId)
       return json({ error: 'Section not found.' }, 404)
+    }
+
+    console.log('[API] PUT — update success, section id:', data[0]?.id)
+
+    // Bust the Next.js page cache so the public site shows the updated content immediately
+    try {
+      const pagePath = page === 'home' ? '/' : `/${page}`
+      revalidatePath(pagePath)
+      console.log('[API] PUT — revalidated path:', pagePath)
+    } catch (rvErr) {
+      console.warn('[API] PUT — revalidatePath failed (non-fatal):', rvErr.message)
     }
 
     return json(data[0])
   } catch (err) {
+    console.error('[API] PUT — unexpected error:', err.message)
     return json({ error: err.message }, 500)
   }
 }
@@ -91,8 +112,11 @@ export async function PUT(request, { params }) {
 // ── DELETE /api/content/[page]/[sectionId] ────────────
 // Delete a specific section and clean up its stored images (Admin only)
 export async function DELETE(request, { params }) {
+  console.log('[API] DELETE /api/content/[page]/[sectionId] — entry')
+
   const auth = await verifyAdmin(request)
   if (auth.error) {
+    console.warn('[API] DELETE — auth failed:', auth.error)
     return json({ error: auth.error }, auth.status)
   }
 
@@ -101,6 +125,7 @@ export async function DELETE(request, { params }) {
     if (!page || !sectionId) {
       return json({ error: 'Page identifier and Section ID are required.' }, 400)
     }
+    console.log('[API] DELETE — page:', page, 'sectionId:', sectionId)
 
     // Retrieve images to clean up storage
     const { data: existing } = await insforge.database
@@ -120,6 +145,7 @@ export async function DELETE(request, { params }) {
       }
     }
 
+    console.log('[API] DELETE — deleting from page_sections')
     const { error } = await insforge.database
       .from('page_sections')
       .delete()
@@ -127,11 +153,24 @@ export async function DELETE(request, { params }) {
       .eq('page', page)
 
     if (error) {
+      console.error('[API] DELETE — DB error:', error.message)
       return json({ error: error.message }, 500)
+    }
+
+    console.log('[API] DELETE — success')
+
+    // Bust the Next.js page cache so the public site no longer shows the deleted section
+    try {
+      const pagePath = page === 'home' ? '/' : `/${page}`
+      revalidatePath(pagePath)
+      console.log('[API] DELETE — revalidated path:', pagePath)
+    } catch (rvErr) {
+      console.warn('[API] DELETE — revalidatePath failed (non-fatal):', rvErr.message)
     }
 
     return json({ success: true })
   } catch (err) {
+    console.error('[API] DELETE — unexpected error:', err.message)
     return json({ error: err.message }, 500)
   }
 }
