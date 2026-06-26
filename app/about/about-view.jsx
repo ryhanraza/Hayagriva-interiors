@@ -11,35 +11,57 @@ import WhyChooseHayagriva from '../../components/WhyChooseHayagriva'
 import FAQ from '../../components/FAQ'
 import { aboutFaqs } from '../../lib/faq-data'
 
-// Blog Posts Data (Design Journal)
-const blogPosts = [
-  {
-    title: 'The Art of Japandi Minimalist Living',
-    category: 'Aesthetics',
-    date: 'June 12, 2026',
-    image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop',
-    desc: 'Discover how to balance raw Scandinavian warmth with quiet Japanese simplicity to create an uncluttered, modern sanctuary.',
-    slug: 'art-of-japandi-minimalist-living'
-  },
-  {
-    title: 'Ergonomic Modular Kitchen Guidelines',
-    category: 'Engineering',
-    date: 'May 28, 2026',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop',
-    desc: 'An in-depth look at counter heights, modular layout workflows, soft-close hardware configurations, and material selections.',
-    slug: 'ergonomic-modular-kitchen-guidelines'
-  },
-  {
-    title: 'Layered Illumination for Private Suites',
-    category: 'Lighting',
-    date: 'April 15, 2026',
-    image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop',
-    desc: 'How to configure layered bedroom lighting using concealed warm coves, task spots, and smart dimming transitions.',
-    slug: 'layered-illumination-private-suites'
-  }
-]
+export default function About({ content = {} }) {
+  // ── CMS section extraction (DB-first, hardcoded fallbacks) ────────────
+  const heroSection    = content['hero']            || {}
+  const storySection   = content['about-story']     || {}
+  const journalSection = content['design-journal']  || {}
+  const ctaSection     = content['cta']             || {}
 
-export default function About() {
+  // ── Hero ──────────────────────────────────────────────────────────────
+  const heroEyebrow     = heroSection.subtitle    || 'Hayagriva Studio'
+  const heroTitle       = heroSection.title       || 'Elegance, Craft,'
+  const heroAccent      = heroSection.custom_json?.titleAccent || 'Design Approach.'
+  const heroDescription = heroSection.description ||
+    'We design luxury interiors that feel warm, modern, and deeply personal. Every residential project is built to reflect your story, with thoughtful layout details, premium finishes, and turnkey timeline execution.'
+  const heroImage       = (Array.isArray(heroSection.images) ? heroSection.images : [])[0]?.url ||
+    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop'
+
+  // ── Story section ─────────────────────────────────────────────────
+  const storyHeading  = storySection.title       || 'A boutique studio rooted in craftsmanship, layout optimization, and material honesty.'
+  const storyPara1    = storySection.description ||
+    'Hayagriva Interiors began with a desire to create residential sanctuaries that feel curated, calm, and unmistakably premium. We blend modern architecture with bespoke joinery, delivering homes that balance luxury with livability.'
+  const storyPara2    = storySection.custom_json?.para2 ||
+    'Our approach is highly collaborative: we listen deeply to your spatial habits, draft precise plans, and oversee manufacture so the final result is both beautiful and built to last.'
+  const missionTitle  = storySection.custom_json?.missionTitle || 'Design homes that feel personal and timeless.'
+  const missionText   = storySection.custom_json?.missionText  ||
+    'We create residential environments that elevate everyday rituals through intelligent layout configurations, layered lighting, and elegant joinery.'
+  const visionTitle   = storySection.custom_json?.visionTitle  || 'The first choice for luxurious residential interiors.'
+  const visionText    = storySection.custom_json?.visionText   ||
+    'We aspire to define new standards of premium home design across the region with every project we deliver, from conceptual sketches to key handover.'
+
+  // ── Design Journal / Blog ─────────────────────────────────────────────
+  const DEFAULT_POSTS = [
+    { title: 'The Art of Japandi Minimalist Living', category: 'Aesthetics', date: 'June 12, 2026', image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop', desc: 'Discover how to balance raw Scandinavian warmth with quiet Japanese simplicity to create an uncluttered, modern sanctuary.', slug: 'art-of-japandi-minimalist-living' },
+    { title: 'Ergonomic Modular Kitchen Guidelines', category: 'Engineering', date: 'May 28, 2026', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop', desc: 'An in-depth look at counter heights, modular layout workflows, soft-close hardware configurations, and material selections.', slug: 'ergonomic-modular-kitchen-guidelines' },
+    { title: 'Layered Illumination for Private Suites', category: 'Lighting', date: 'April 15, 2026', image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop', desc: 'How to configure layered bedroom lighting using concealed warm coves, task spots, and smart dimming transitions.', slug: 'layered-illumination-private-suites' }
+  ]
+  const dbPosts = journalSection.custom_json?.posts
+  const blogPosts = Array.isArray(dbPosts) && dbPosts.length > 0
+    ? dbPosts.map((p, i) => ({
+        title:    p.title    || DEFAULT_POSTS[i]?.title    || '',
+        category: p.category || DEFAULT_POSTS[i]?.category || '',
+        date:     p.date     || DEFAULT_POSTS[i]?.date     || '',
+        image:    p.image    || DEFAULT_POSTS[i]?.image    || '',
+        desc:     p.desc     || p.description || DEFAULT_POSTS[i]?.desc || '',
+        slug:     p.slug     || DEFAULT_POSTS[i]?.slug     || '#'
+      }))
+    : DEFAULT_POSTS
+
+  // ── CTA ───────────────────────────────────────────────────────────────
+  const ctaHeading     = ctaSection.title       || 'Ready to Design Your Haven?'
+  const ctaDescription = ctaSection.description ||
+    'Schedule a design session with our principal architects. We will discuss spatial blueprints, sample material palettes, and immediately compute customized site estimates.'
   return (
     <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden">
       
@@ -57,17 +79,16 @@ export default function About() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 border border-white/10 rounded-full text-gold text-xs font-bold uppercase tracking-widest">
               <Sparkles size={12} className="text-gold animate-pulse" />
-              <span>Hayagriva Studio</span>
+              <span>{heroEyebrow}</span>
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif leading-[1.15] font-extrabold text-white">
-              Elegance, Craft, <br />
-              and a Signature <br />
-              <span className="text-gradient-gold italic font-normal">Design Approach.</span>
+              {heroTitle} <br />
+              <span className="text-gradient-gold italic font-normal">{heroAccent}</span>
             </h1>
             
             <p className="text-beige/70 text-sm sm:text-base max-w-lg leading-relaxed">
-              We design luxury interiors that feel warm, modern, and deeply personal. Every residential project is built to reflect your story, with thoughtful layout details, premium finishes, and turnkey timeline execution.
+              {heroDescription}
             </p>
             
             <div className="flex flex-wrap gap-4 pt-4">
@@ -94,7 +115,7 @@ export default function About() {
             className="relative h-[400px] md:h-[480px] w-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl"
           >
             <Image
-              src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"
+              src={heroImage}
               alt="Premium residential suite design"
               fill
               priority
@@ -118,13 +139,13 @@ export default function About() {
           >
             <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">OUR JOURNEY</span>
             <h2 className="text-3xl sm:text-4xl font-serif text-charcoal font-bold leading-tight max-w-xl">
-              A boutique studio rooted in craftsmanship, layout optimization, and material honesty.
+              {storyHeading}
             </h2>
             <p className="text-sm text-charcoal/60 leading-relaxed max-w-xl">
-              Hayagriva Interiors began with a desire to create residential sanctuaries that feel curated, calm, and unmistakably premium. We blend modern architecture with bespoke joinery, delivering homes that balance luxury with livability.
+              {storyPara1}
             </p>
             <p className="text-sm text-charcoal/60 leading-relaxed max-w-xl">
-              Our approach is highly collaborative: we listen deeply to your spatial habits, draft precise plans, and oversee manufacture so the final result is both beautiful and built to last.
+              {storyPara2}
             </p>
           </motion.div>
           
@@ -137,16 +158,16 @@ export default function About() {
           >
             <div className="p-8 bg-white border border-charcoal/5 rounded-3xl shadow-sm hover:shadow-lg hover:border-gold/30 transition-all duration-500">
               <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">MISSION</span>
-              <h3 className="mt-2 text-2xl font-serif font-bold text-charcoal">Design homes that feel personal and timeless.</h3>
+              <h3 className="mt-2 text-2xl font-serif font-bold text-charcoal">{missionTitle}</h3>
               <p className="mt-4 text-xs sm:text-sm text-charcoal/60 leading-relaxed">
-                We create residential environments that elevate everyday rituals through intelligent layout configurations, layered lighting, and elegant joinery.
+                {missionText}
               </p>
             </div>
             <div className="p-8 bg-white border border-charcoal/5 rounded-3xl shadow-sm hover:shadow-lg hover:border-gold/30 transition-all duration-500">
               <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">VISION</span>
-              <h3 className="mt-2 text-2xl font-serif font-bold text-charcoal">The first choice for luxurious residential interiors.</h3>
+              <h3 className="mt-2 text-2xl font-serif font-bold text-charcoal">{visionTitle}</h3>
               <p className="mt-4 text-xs sm:text-sm text-charcoal/60 leading-relaxed">
-                We aspire to define new standards of premium home design across the region with every project we deliver, from conceptual sketches to key handover.
+                {visionText}
               </p>
             </div>
           </motion.div>
@@ -233,10 +254,10 @@ export default function About() {
           <div className="relative z-10 space-y-6 max-w-2xl mx-auto">
             <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">Design Consultation</span>
             <h3 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black leading-tight text-white">
-              Ready to Design Your Haven?
+              {ctaHeading}
             </h3>
             <p className="text-beige-luxury/60 text-xs sm:text-sm leading-relaxed max-w-lg mx-auto">
-              Schedule a design session with our principal architects. We will discuss spatial blueprints, sample material palettes, and immediately compute customized site estimates.
+              {ctaDescription}
             </p>
             <div className="pt-4 flex justify-center gap-4 flex-wrap">
               <Link 

@@ -62,7 +62,31 @@ function CountUp({ target, suffix = '', duration = 2 }) {
   )
 }
 
-export default function Home() {
+export default function Home({ content = {} }) {
+  // ── CMS section extraction (DB-first, hardcoded fallbacks) ────────────
+  const heroSection     = content['hero']               || {}
+  const statsSection    = content['stats']              || {}
+  const servicesSection = content['services-preview']   || {}
+  const processSection  = content['process-timeline']   || {}
+  const baSection       = content['before-after']       || {}
+  const roomSection     = content['room-designs']       || {}
+  const projectsSection = content['featured-projects']  || {}
+  const ctaSection      = content['cta']                || {}
+
+  // Icon name → component lookup (icons stored as strings in the DB)
+  const ICON_MAP = {
+    CheckCircle2, Shield, Award, Heart, Users, Clock, ShieldCheck, Headphones,
+    Utensils, Bed, Sofa, PencilRuler, KeyRound, Hammer,
+    ClipboardList, Palette, Truck, Wrench, ArrowRight, ArrowUpRight, BookOpen, Sparkles
+  }
+
+  // ── Hero ──────────────────────────────────────────────────────────────
+  const heroSubtitle    = heroSection.subtitle    || 'Luxury Turnkey Interiors'
+  const heroTitle       = heroSection.title       || 'Transform Your Home into a'
+  const heroAccent      = heroSection.custom_json?.titleAccent || 'Dream Space.'
+  const heroDescription = heroSection.description ||
+    'Bespoke layouts, premium materials, and flawless execution. We translate your story into tailored residential sanctuaries.'
+
   // Hero lead form states
   const [formData, setFormData] = useState({ name: '', phone: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -106,147 +130,115 @@ export default function Home() {
     }
   }
 
-  // Stats data for Trust Indicators
-  const stats = [
+  // ── Stats ─────────────────────────────────────────────────────────────
+  const DEFAULT_STATS = [
     { value: 500, suffix: '+', label: 'Homes Delivered', subtext: 'Exquisite designs across AP', icon: CheckCircle2 },
     { value: 5, suffix: '+ Years', label: 'Experience', subtext: 'Refined craftsmanship', icon: Shield },
     { value: 100, suffix: '%', label: 'Client Satisfaction', subtext: 'Discerning reviews', icon: Heart }
   ]
+  const dbStatItems = statsSection.custom_json?.items
+  const stats = Array.isArray(dbStatItems) && dbStatItems.length > 0
+    ? dbStatItems.map((item, i) => ({
+        ...(DEFAULT_STATS[i] || DEFAULT_STATS[0]),
+        value:   Number(item.value)  || DEFAULT_STATS[i]?.value  || 0,
+        suffix:  item.suffix  !== undefined ? item.suffix  : (DEFAULT_STATS[i]?.suffix  || ''),
+        label:   item.label   || DEFAULT_STATS[i]?.label   || '',
+        subtext: item.subtext || DEFAULT_STATS[i]?.subtext || '',
+        icon:    ICON_MAP[item.icon] || DEFAULT_STATS[i]?.icon || CheckCircle2
+      }))
+    : DEFAULT_STATS
 
-  // Services data
-  const services = [
-    {
-      title: 'Modular Kitchen',
-      desc: 'Sleek, ergonomic layouts featuring premium soft-close cabinets, white oak paneling, and marble surfaces.',
-      icon: Utensils,
-      color: 'bg-gold-light/40',
-      href: '/services/modular-kitchen'
-    },
-    {
-      title: 'Bedroom Interiors',
-      desc: 'Timeless master suites designed for peace. Custom headboards, walk-in closets, and ambient bedside lighting.',
-      icon: Bed,
-      color: 'bg-gold-light/40',
-      href: '/services/bedroom'
-    },
-    {
-      title: 'Living Room Design',
-      desc: 'Elegant lounges blending Scandinavian simplicity and luxury. Floating media consoles and bespoke plaster walls.',
-      icon: Sofa,
-      color: 'bg-gold-light/40',
-      href: '/services/living-room'
-    },
-    {
-      title: 'Space Planning & 3D Design',
-      desc: 'Professional space planning with photorealistic 3D renders to visualize your home before a single material is ordered.',
-      icon: PencilRuler,
-      color: 'bg-gold-light/40',
-      href: '/services/space-planning'
-    },
-    {
-      title: 'Turnkey Interiors',
-      desc: 'Complete interior solutions from design to execution.',
-      icon: KeyRound,
-      color: 'bg-gold-light/40',
-      href: '/services/turnkey-solutions'
-    },
-    {
-      title: 'Renovation',
-      desc: 'Revitalize your existing spaces with expert remodeling, structural upgrades, and aesthetic makeovers.',
-      icon: Hammer,
-      color: 'bg-gold-light/40',
-      href: '/services/renovation'
-    }
+  // ── Services ──────────────────────────────────────────────────────────
+  const DEFAULT_SERVICES = [
+    { title: 'Modular Kitchen', desc: 'Sleek, ergonomic layouts featuring premium soft-close cabinets, white oak paneling, and marble surfaces.', icon: Utensils, color: 'bg-gold-light/40', href: '/services/modular-kitchen' },
+    { title: 'Bedroom Interiors', desc: 'Timeless master suites designed for peace. Custom headboards, walk-in closets, and ambient bedside lighting.', icon: Bed, color: 'bg-gold-light/40', href: '/services/bedroom' },
+    { title: 'Living Room Design', desc: 'Elegant lounges blending Scandinavian simplicity and luxury. Floating media consoles and bespoke plaster walls.', icon: Sofa, color: 'bg-gold-light/40', href: '/services/living-room' },
+    { title: 'Space Planning & 3D Design', desc: 'Professional space planning with photorealistic 3D renders to visualize your home before a single material is ordered.', icon: PencilRuler, color: 'bg-gold-light/40', href: '/services/space-planning' },
+    { title: 'Turnkey Interiors', desc: 'Complete interior solutions from design to execution.', icon: KeyRound, color: 'bg-gold-light/40', href: '/services/turnkey-solutions' },
+    { title: 'Renovation', desc: 'Revitalize your existing spaces with expert remodeling, structural upgrades, and aesthetic makeovers.', icon: Hammer, color: 'bg-gold-light/40', href: '/services/renovation' }
   ]
+  const dbServiceItems = servicesSection.custom_json?.items
+  const services = Array.isArray(dbServiceItems) && dbServiceItems.length > 0
+    ? dbServiceItems.map((item, i) => ({
+        ...(DEFAULT_SERVICES[i] || DEFAULT_SERVICES[0]),
+        title: item.title || DEFAULT_SERVICES[i]?.title || '',
+        desc:  item.desc || item.description || DEFAULT_SERVICES[i]?.desc || '',
+        icon:  ICON_MAP[item.icon] || DEFAULT_SERVICES[i]?.icon || Sofa,
+        href:  item.href || item.link || DEFAULT_SERVICES[i]?.href || '/services'
+      }))
+    : DEFAULT_SERVICES
 
-  // How It Works Steps
-  const processSteps = [
-    {
-      step: '01',
-      title: 'Consultation',
-      desc: 'We understand your needs, space, and budget to craft a clear vision for your project.',
-      icon: ClipboardList
-    },
-    {
-      step: '02',
-      title: 'Design & Planning',
-      desc: 'We create detailed layouts, 3D designs, and execution-ready plans tailored to you.',
-      icon: PencilRuler
-    },
-    {
-      step: '03',
-      title: 'Material Selection',
-      desc: 'Choose premium finishes, colors, and materials that match your aesthetic perfectly.',
-      icon: Palette
-    },
-    {
-      step: '04',
-      title: 'Execution',
-      desc: 'Our skilled craftsmen bring the design to life with precision and supervision.',
-      icon: Hammer
-    },
-    {
-      step: '05',
-      title: 'Handover',
-      desc: 'Final delivery with rigorous quality assurance and a flawless, ready-to-live space.',
-      icon: KeyRound
-    }
+  // ── Process Steps ─────────────────────────────────────────────────────
+  const DEFAULT_STEPS = [
+    { step: '01', title: 'Consultation',       desc: 'We understand your needs, space, and budget to craft a clear vision for your project.',    icon: ClipboardList },
+    { step: '02', title: 'Design & Planning',  desc: 'We create detailed layouts, 3D designs, and execution-ready plans tailored to you.',         icon: PencilRuler },
+    { step: '03', title: 'Material Selection', desc: 'Choose premium finishes, colors, and materials that match your aesthetic perfectly.',          icon: Palette },
+    { step: '04', title: 'Execution',          desc: 'Our skilled craftsmen bring the design to life with precision and supervision.',               icon: Hammer },
+    { step: '05', title: 'Handover',           desc: 'Final delivery with rigorous quality assurance and a flawless, ready-to-live space.',         icon: KeyRound }
   ]
+  const dbSteps = processSection.custom_json?.steps
+  const processSteps = Array.isArray(dbSteps) && dbSteps.length > 0
+    ? dbSteps.map((item, i) => ({
+        ...(DEFAULT_STEPS[i] || DEFAULT_STEPS[0]),
+        step:  item.step  || String(i + 1).padStart(2, '0'),
+        title: item.title || DEFAULT_STEPS[i]?.title || '',
+        desc:  item.desc  || item.description || DEFAULT_STEPS[i]?.desc || '',
+        icon:  ICON_MAP[item.icon] || DEFAULT_STEPS[i]?.icon || ClipboardList
+      }))
+    : DEFAULT_STEPS
 
-  // Highlight Features
+  // Highlight Features — kept as hardcoded (extend later via CMS if needed)
   const highlights = [
-    { title: 'On-Time Delivery', desc: 'Projects delivered as promised', icon: Clock },
-    { title: 'Quality Assurance', desc: 'Rigorous checks at every stage', icon: ShieldCheck },
-    { title: 'Expert Team', desc: 'Skilled designers & craftsmen', icon: Users },
-    { title: 'End-to-End Support', desc: 'With you from concept to handover', icon: Headphones }
+    { title: 'On-Time Delivery',    desc: 'Projects delivered as promised',     icon: Clock },
+    { title: 'Quality Assurance',   desc: 'Rigorous checks at every stage',     icon: ShieldCheck },
+    { title: 'Expert Team',         desc: 'Skilled designers & craftsmen',       icon: Users },
+    { title: 'End-to-End Support',  desc: 'With you from concept to handover',  icon: Headphones }
   ]
 
-  // Room-wise Designs
-  const roomDesigns = [
-    {
-      name: 'Kitchen',
-      image: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=800&auto=format&fit=crop',
-      filter: 'Kitchen',
-      tag: 'Culinary Hubs'
-    },
-    {
-      name: 'Bedroom',
-      image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop',
-      filter: 'Bedroom',
-      tag: 'Serene Sanctuary'
-    },
-    {
-      name: 'Living Room',
-      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800&auto=format&fit=crop',
-      filter: 'Living Room',
-      tag: 'Grand Lounge'
-    }
-  ]
+  // ── Before / After ────────────────────────────────────────────────────
+  const baImages    = Array.isArray(baSection.images) ? baSection.images : []
+  const beforeImage = baImages[0]?.url || 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1200&auto=format&fit=crop'
+  const afterImage  = baImages[1]?.url || 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1200&auto=format&fit=crop'
+  const beforeLabel = baSection.custom_json?.beforeLabel || 'Before: Empty space shell'
+  const afterLabel  = baSection.custom_json?.afterLabel  || 'After: Luxury Bed Chamber'
 
-  // Featured Projects
-  const featuredProjects = [
-    {
-      title: 'Modern Wood Kitchen & Island',
-      type: 'Modular Kitchen',
-      budget: '₹8.5 Lakhs',
-      image: '/images/project-1.jpg',
-      category: 'Kitchen'
-    },
-    {
-      title: 'Bespoke Master Wardrobe',
-      type: 'Residential Fitout',
-      budget: '₹12 Lakhs',
-      image: '/images/project-2.jpg',
-      category: 'Bedroom'
-    },
-    {
-      title: 'Japandi Living Lounge',
-      type: 'Full Residence',
-      budget: '₹22 Lakhs',
-      image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop',
-      category: 'Living Room'
-    }
+  // ── Room-wise Designs ─────────────────────────────────────────────────
+  const DEFAULT_ROOMS = [
+    { name: 'Kitchen',     image: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?q=80&w=800&auto=format&fit=crop', filter: 'Kitchen',     tag: 'Culinary Hubs'    },
+    { name: 'Bedroom',     image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop', filter: 'Bedroom',     tag: 'Serene Sanctuary' },
+    { name: 'Living Room', image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800&auto=format&fit=crop', filter: 'Living Room', tag: 'Grand Lounge'     }
   ]
+  const dbRooms = roomSection.custom_json?.rooms
+  const roomDesigns = Array.isArray(dbRooms) && dbRooms.length > 0
+    ? dbRooms.map((room, i) => ({
+        name:   room.name   || DEFAULT_ROOMS[i]?.name   || '',
+        image:  room.image  || DEFAULT_ROOMS[i]?.image  || '',
+        filter: room.filter || room.name || DEFAULT_ROOMS[i]?.filter || '',
+        tag:    room.tag    || DEFAULT_ROOMS[i]?.tag    || ''
+      }))
+    : DEFAULT_ROOMS
+
+  // ── Featured Projects ─────────────────────────────────────────────────
+  const DEFAULT_FEATURED = [
+    { title: 'Modern Wood Kitchen & Island', type: 'Modular Kitchen',    budget: '₹8.5 Lakhs', image: '/images/project-1.jpg', category: 'Kitchen' },
+    { title: 'Bespoke Master Wardrobe',      type: 'Residential Fitout', budget: '₹12 Lakhs',  image: '/images/project-2.jpg', category: 'Bedroom' },
+    { title: 'Japandi Living Lounge',        type: 'Full Residence',     budget: '₹22 Lakhs',  image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop', category: 'Living Room' }
+  ]
+  const dbProjects = projectsSection.custom_json?.projects
+  const featuredProjects = Array.isArray(dbProjects) && dbProjects.length > 0
+    ? dbProjects.map((p, i) => ({
+        title:    p.title    || DEFAULT_FEATURED[i]?.title    || '',
+        type:     p.type     || DEFAULT_FEATURED[i]?.type     || '',
+        budget:   p.budget   || DEFAULT_FEATURED[i]?.budget   || '',
+        image:    p.image    || DEFAULT_FEATURED[i]?.image    || '',
+        category: p.category || DEFAULT_FEATURED[i]?.category || ''
+      }))
+    : DEFAULT_FEATURED
+
+  // ── CTA ───────────────────────────────────────────────────────────────
+  const ctaHeading     = ctaSection.title       || 'Ready to Transform Your Space?'
+  const ctaDescription = ctaSection.description ||
+    'Schedule a complimentary design session with our lead architects. We will prepare space blueprints, select material samples, and provide immediate project estimates.'
 
   return (
     <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden">
@@ -277,7 +269,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 border border-white/10 rounded-full text-gold text-xs font-bold uppercase tracking-widest"
             >
               <Sparkles size={12} className="text-gold animate-pulse" />
-              <span>Luxury Turnkey Interiors</span>
+              <span>{heroSubtitle}</span>
             </motion.div>
             
             <motion.h1 
@@ -286,9 +278,8 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="text-4xl sm:text-6xl lg:text-7xl font-serif leading-[1.05] tracking-tight font-extrabold text-white"
             >
-              Transform Your <br />
-              Home into a <br />
-              <span className="text-gradient-gold italic font-normal">Dream Space.</span>
+              {heroTitle}<br />
+              <span className="text-gradient-gold italic font-normal">{heroAccent}</span>
             </motion.h1>
             
             <motion.p 
@@ -297,7 +288,7 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="text-beige/70 text-sm sm:text-base max-w-lg leading-relaxed"
             >
-              Bespoke layouts, premium materials, and flawless execution. We translate your story into tailored residential sanctuaries.
+              {heroDescription}
             </motion.p>
             
             <motion.div 
@@ -608,11 +599,11 @@ export default function Home() {
           transition={{ duration: 0.8 }}
           className="relative rounded-3xl overflow-hidden shadow-xl"
         >
-          <BeforeAfterSlider 
-            beforeImage="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1200&auto=format&fit=crop"
-            afterImage="https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1200&auto=format&fit=crop"
-            beforeLabel="Before: Empty space shell"
-            afterLabel="After: Luxury Bed Chamber"
+          <BeforeAfterSlider
+            beforeImage={beforeImage}
+            afterImage={afterImage}
+            beforeLabel={beforeLabel}
+            afterLabel={afterLabel}
           />
         </motion.div>
       </section>
@@ -755,9 +746,9 @@ export default function Home() {
         
         <div className="max-w-4xl mx-auto text-center relative z-10 space-y-8">
           <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">Design Consultation</span>
-          <h3 className="text-3xl sm:text-5xl lg:text-6xl font-serif leading-tight font-extrabold">Ready to Transform Your Space?</h3>
+          <h3 className="text-3xl sm:text-5xl lg:text-6xl font-serif leading-tight font-extrabold">{ctaHeading}</h3>
           <p className="max-w-xl mx-auto text-beige/60 text-xs sm:text-sm leading-relaxed">
-            Schedule a complimentary design session with our lead architects. We will prepare space blueprints, select material samples, and provide immediate project estimates.
+            {ctaDescription}
           </p>
           <div className="pt-4 flex justify-center gap-4 flex-wrap">
             <Link 

@@ -11,118 +11,72 @@ import WhyChooseHayagriva from '../../components/WhyChooseHayagriva'
 import FAQ from '../../components/FAQ'
 import { servicesFaqs } from '../../lib/faq-data'
 
-// Core Services Grid Data
-const coreServices = [
-    {
-    title: 'Modular Kitchen',
-    desc: 'Precision cabinetry, natural stone countertops, and intelligent storage layouts.',
-    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=1000&auto=format&fit=crop',
-    slug: 'modular-kitchen',
-    filter: 'Kitchen'
-  },
-  {
-    title: 'Bedroom Interiors',
-    desc: 'Calm suites with luxury headboards, custom walk-in closets, and ambient lighting.',
-    image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1000&auto=format&fit=crop',
-    slug: 'bedroom',
-    filter: 'Bedroom'
-  },
-  {
-    title: 'Living Room Design',
-    desc: 'Elegant lounges blending tailored furniture, floating consoles, and custom walls.',
-    image: 'https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?q=80&w=1000&auto=format&fit=crop',
-    slug: 'living-room',
-    filter: 'Living Room'
-  },
-  {
-    title: 'Space Planning & 3D Design',
-    desc: 'Professional layouts with photorealistic renders before construction begins.',
-    image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1000&auto=format&fit=crop',
-    slug: 'space-planning',
-    filter: ''
-  },
-  {
-    title: 'Turnkey Interiors',
-    desc: 'Complete interior solutions from design to execution.',
-    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1000&auto=format&fit=crop',
-    slug: 'turnkey-solutions',
-    filter: ''
-  },
-  {
-    title: 'Renovation',
-    desc: 'Revitalize your existing spaces with expert remodeling and structural upgrades.',
-    image: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=1000&auto=format&fit=crop',
-    slug: 'renovation',
-    filter: ''
-  }
-]
+export default function ServicesPage({ content = {} }) {
+  // ── CMS section extraction (DB-first, hardcoded fallbacks) ────────────
+  const heroSection     = content['hero']              || {}
+  const gridSection     = content['services-grid']     || {}
+  const detailSection   = content['detailed-services'] || {}
+  const pricingSection  = content['pricing']           || {}
 
-// Detailed Alternating Services Data
-const detailedServices = [
-  {
-    title: 'Modular Kitchen',
-    tag: 'Culinary Engineering',
-    desc: 'A high-performance kitchen designed around your workflow. We build custom modular setups incorporating premium soft-close drawer tracks, heavy-duty pull-out trays, and natural quartz countertops. Every cabinet and cabinet front is engineered to withstand daily use while presenting an immaculate, handleless aesthetic.',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
-    features: ['Custom modular layouts', 'Quartz & marble counters', 'Soft-close hardware', 'Under-cabinet illumination']
-  },
-  {
-    title: 'Bedroom Interiors',
-    tag: 'Serene Sanctuaries',
-    desc: 'Transform your bedroom into a quiet retreat. Our designers custom craft floor-to-ceiling headboards, integrated floating nightstands, and walk-in wardrobe organizers with matte finishes. Lighting is layered seamlessly using dimmable LED coves and directional task spotlights to transition spatial mood effortlessly.',
-    image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1200&auto=format&fit=crop',
-    features: ['Ergonomic wardrobe systems', 'Custom upholstered headboards', 'Layered mood coves', 'Space-optimizing layouts']
-  },
-  {
-    title: 'Living Room Design',
-    tag: 'Grand Entertainment Lounges',
-    desc: 'Bespoke living environments made for social gathering and quiet comfort alike. We specialize in floating entertainment consoles, wood-paneled feature walls, and hand-plastered textured finishes. Every piece of furniture is scaled and positioned to optimize both architectural flow and everyday comfort.',
-    image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1200&auto=format&fit=crop',
-    features: ['Floating media cabinetry', 'Textured plaster finishes', 'Bespoke seating configurations', 'Integrated gallery display units']
-  },
-  {
-    title: 'Office Interiors',
-    tag: 'Refined Workspaces',
-    desc: 'Productive home offices and study spaces that feel sophisticated and focused. We blend modern ergonomic standards with high-end materials like American walnut and anodized aluminum. Hidden cable organizer ducts, custom task lighting, and acoustic felt backing ensure a clean, distraction-free environment.',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop',
-    features: ['Walnut veneer executive desks', 'Concealed wiring systems', 'Acoustic felt paneling', 'Smart storage & floating shelves']
-  },
-  {
-    title: 'Turnkey Interiors',
-    tag: 'End-to-End Execution',
-    desc: 'A single-source, hassle-free engagement where we handle every stage of your project — from concept and 3D design to procurement, civil works, carpentry, and final handover. One dedicated project manager, one timeline, one accountable team delivering your complete home, move-in ready.',
-    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop',
-    features: ['Single-point project ownership', 'Design + civil + execution in-house', 'Dedicated project manager & timeline', 'Move-in ready final handover']
-  },
-  {
-    title: 'Renovation',
-    tag: 'Breathe New Life',
-    desc: 'Transform your existing home without starting from scratch. Our renovation expertise covers structural modifications, layout reconfigurations, bathroom and kitchen makeovers, flooring upgrades, and complete aesthetic overhauls. We assess the existing structure, reinforce where needed, and deliver a refreshed space that feels entirely new.',
-    image: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=1200&auto=format&fit=crop',
-    features: ['Structural modifications & layout reconfigurations', 'Kitchen & bathroom makeovers', 'Flooring, tiling & plumbing upgrades', 'Complete aesthetic overhauls & repainting']
-  }
-]
+  // ── Page header text ──────────────────────────────────────────────────
+  const gridHeading     = (gridSection.title    || heroSection.title)    || 'Curated Solutions for Your Home'
+  const gridDescription = (gridSection.description || heroSection.description) ||
+    'Click to explore room layouts designed to match your individual standard of daily comfort and luxurious spacing.'
 
-// Pricing hints
-const pricingGuides = [
-  {
-    title: 'Modular Kitchen',
-    range: '₹1.5L – ₹5L',
-    desc: 'Starting range for custom layouts, high-moisture resistant plywood, acrylic/laminate shutters, and soft-close hardware.'
-  },
-  {
-    title: 'Bedroom Interiors',
-    range: '₹80K – ₹3L',
-    desc: 'Includes custom double bed, master sliding wardrobe with modular internal drawers, bedside units, and mood lighting coves.'
-  },
-  {
-    title: 'Living Room Design',
-    range: '₹1L – ₹4L',
-    desc: 'Covers television floating unit, custom wood paneling, wall niches, styling moldings, and built-in storage solutions.'
-  }
-]
+  // ── Core services grid ───────────────────────────────────────────────
+  const DEFAULT_CORE = [
+    { title: 'Modular Kitchen',         desc: 'Precision cabinetry, natural stone countertops, and intelligent storage layouts.',            image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=1000&auto=format&fit=crop', slug: 'modular-kitchen', filter: 'Kitchen' },
+    { title: 'Bedroom Interiors',       desc: 'Calm suites with luxury headboards, custom walk-in closets, and ambient lighting.',           image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1000&auto=format&fit=crop', slug: 'bedroom',         filter: 'Bedroom' },
+    { title: 'Living Room Design',      desc: 'Elegant lounges blending tailored furniture, floating consoles, and custom walls.',           image: 'https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?q=80&w=1000&auto=format&fit=crop', slug: 'living-room',    filter: 'Living Room' },
+    { title: 'Space Planning & 3D Design', desc: 'Professional layouts with photorealistic renders before construction begins.',            image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1000&auto=format&fit=crop', slug: 'space-planning', filter: '' },
+    { title: 'Turnkey Interiors',       desc: 'Complete interior solutions from design to execution.',                                      image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1000&auto=format&fit=crop', slug: 'turnkey-solutions', filter: '' },
+    { title: 'Renovation',             desc: 'Revitalize your existing spaces with expert remodeling and structural upgrades.',              image: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=1000&auto=format&fit=crop', slug: 'renovation',      filter: '' }
+  ]
+  const dbCore = gridSection.custom_json?.services
+  const coreServices = Array.isArray(dbCore) && dbCore.length > 0
+    ? dbCore.map((s, i) => ({
+        title:  s.title  || DEFAULT_CORE[i]?.title  || '',
+        desc:   s.desc   || DEFAULT_CORE[i]?.desc   || '',
+        image:  s.image  || DEFAULT_CORE[i]?.image  || '',
+        slug:   s.slug   || DEFAULT_CORE[i]?.slug   || '#',
+        filter: s.filter || DEFAULT_CORE[i]?.filter || ''
+      }))
+    : DEFAULT_CORE
 
-export default function ServicesPage() {
+  // ── Detailed (alternating) services ──────────────────────────────────────
+  const DEFAULT_DETAILED = [
+    { title: 'Modular Kitchen',    tag: 'Culinary Engineering',       desc: 'A high-performance kitchen designed around your workflow. We build custom modular setups incorporating premium soft-close drawer tracks, heavy-duty pull-out trays, and natural quartz countertops. Every cabinet and cabinet front is engineered to withstand daily use while presenting an immaculate, handleless aesthetic.',     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop', features: ['Custom modular layouts', 'Quartz & marble counters', 'Soft-close hardware', 'Under-cabinet illumination'] },
+    { title: 'Bedroom Interiors',  tag: 'Serene Sanctuaries',        desc: 'Transform your bedroom into a quiet retreat. Our designers custom craft floor-to-ceiling headboards, integrated floating nightstands, and walk-in wardrobe organizers with matte finishes. Lighting is layered seamlessly using dimmable LED coves and directional task spotlights to transition spatial mood effortlessly.',       image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1200&auto=format&fit=crop', features: ['Ergonomic wardrobe systems', 'Custom upholstered headboards', 'Layered mood coves', 'Space-optimizing layouts'] },
+    { title: 'Living Room Design', tag: 'Grand Entertainment Lounges', desc: 'Bespoke living environments made for social gathering and quiet comfort alike. We specialize in floating entertainment consoles, wood-paneled feature walls, and hand-plastered textured finishes. Every piece of furniture is scaled and positioned to optimize both architectural flow and everyday comfort.',                 image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1200&auto=format&fit=crop', features: ['Floating media cabinetry', 'Textured plaster finishes', 'Bespoke seating configurations', 'Integrated gallery display units'] },
+    { title: 'Office Interiors',   tag: 'Refined Workspaces',        desc: 'Productive home offices and study spaces that feel sophisticated and focused. We blend modern ergonomic standards with high-end materials like American walnut and anodized aluminum. Hidden cable organizer ducts, custom task lighting, and acoustic felt backing ensure a clean, distraction-free environment.',                image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop', features: ['Walnut veneer executive desks', 'Concealed wiring systems', 'Acoustic felt paneling', 'Smart storage & floating shelves'] },
+    { title: 'Turnkey Interiors',  tag: 'End-to-End Execution',       desc: 'A single-source, hassle-free engagement where we handle every stage of your project — from concept and 3D design to procurement, civil works, carpentry, and final handover. One dedicated project manager, one timeline, one accountable team delivering your complete home, move-in ready.',                                   image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop', features: ['Single-point project ownership', 'Design + civil + execution in-house', 'Dedicated project manager & timeline', 'Move-in ready final handover'] },
+    { title: 'Renovation',         tag: 'Breathe New Life',           desc: 'Transform your existing home without starting from scratch. Our renovation expertise covers structural modifications, layout reconfigurations, bathroom and kitchen makeovers, flooring upgrades, and complete aesthetic overhauls. We assess the existing structure, reinforce where needed, and deliver a refreshed space that feels entirely new.', image: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=1200&auto=format&fit=crop', features: ['Structural modifications & layout reconfigurations', 'Kitchen & bathroom makeovers', 'Flooring, tiling & plumbing upgrades', 'Complete aesthetic overhauls & repainting'] }
+  ]
+  const dbDetailed = detailSection.custom_json?.services
+  const detailedServices = Array.isArray(dbDetailed) && dbDetailed.length > 0
+    ? dbDetailed.map((s, i) => ({
+        title:    s.title    || DEFAULT_DETAILED[i]?.title    || '',
+        tag:      s.tag      || DEFAULT_DETAILED[i]?.tag      || '',
+        desc:     s.desc     || DEFAULT_DETAILED[i]?.desc     || '',
+        image:    s.image    || DEFAULT_DETAILED[i]?.image    || '',
+        features: Array.isArray(s.features) && s.features.length > 0 ? s.features : (DEFAULT_DETAILED[i]?.features || [])
+      }))
+    : DEFAULT_DETAILED
+
+  // ── Pricing guides ─────────────────────────────────────────────────
+  const DEFAULT_PRICING = [
+    { title: 'Modular Kitchen',  range: '₹1.5L – ₹5L', desc: 'Starting range for custom layouts, high-moisture resistant plywood, acrylic/laminate shutters, and soft-close hardware.' },
+    { title: 'Bedroom Interiors', range: '₹80K – ₹3L', desc: 'Includes custom double bed, master sliding wardrobe with modular internal drawers, bedside units, and mood lighting coves.' },
+    { title: 'Living Room Design', range: '₹1L – ₹4L', desc: 'Covers television floating unit, custom wood paneling, wall niches, styling moldings, and built-in storage solutions.' }
+  ]
+  const dbPricing = pricingSection.custom_json?.tiers
+  const pricingGuides = Array.isArray(dbPricing) && dbPricing.length > 0
+    ? dbPricing.map((p, i) => ({
+        title: p.title || DEFAULT_PRICING[i]?.title || '',
+        range: p.range || p.price || DEFAULT_PRICING[i]?.range || '',
+        desc:  p.desc  || p.description || DEFAULT_PRICING[i]?.desc  || ''
+      }))
+    : DEFAULT_PRICING
   return (
     <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden pt-28">
 
@@ -130,9 +84,9 @@ export default function ServicesPage() {
       <section id="services-overview" className="py-24 px-6 max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">DESIGN SPECIALTIES</span>
-          <h2 className="text-3xl sm:text-4xl font-serif text-charcoal font-bold leading-tight">Curated Solutions for Your Home</h2>
+          <h2 className="text-3xl sm:text-4xl font-serif text-charcoal font-bold leading-tight">{gridHeading}</h2>
           <p className="text-charcoal/60 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
-            Click to explore room layouts designed to match your individual standard of daily comfort and luxurious spacing.
+            {gridDescription}
           </p>
         </div>
 

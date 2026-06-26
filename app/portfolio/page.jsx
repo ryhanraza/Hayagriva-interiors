@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import PortfolioView from './portfolio-view'
 import { getSeoForPage, buildMetadata } from '../../lib/seo'
+import { getSectionsForPage } from '../../lib/sections'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,13 +9,17 @@ export async function generateMetadata() {
   return buildMetadata(await getSeoForPage('portfolio'))
 }
 
-// Always render the hand-coded PortfolioView.
-// The DB-driven DynamicSections override is intentionally bypassed so the
-// original UI is shown regardless of any rows in the page_sections table.
 export default async function Page() {
+  const sectionsArray = await getSectionsForPage('portfolio')
+  const content = {}
+  for (const section of sectionsArray) {
+    if (section.type && !(section.type in content)) {
+      content[section.type] = section
+    }
+  }
   return (
     <Suspense fallback={null}>
-      <PortfolioView />
+      <PortfolioView content={content} />
     </Suspense>
   )
 }

@@ -7,17 +7,25 @@ import WhyChooseHayagriva from '../../components/WhyChooseHayagriva'
 import FAQ from '../../components/FAQ'
 import { contactFaqs } from '../../lib/faq-data'
 
-export default function Contact() {
+export default function Contact({ content = {} }) {
+  const heroSection    = content['hero']    || {}
+  const contactSection = content['contact'] || {}
+
+  const pageEyebrow   = heroSection.subtitle   || contactSection.subtitle || 'Get In Touch'
+  const pageHeading   = heroSection.title      || contactSection.title    || 'Start Your Design Journey'
+  const pageSubtext   = heroSection.description || contactSection.description ||
+    'Book a complimentary design consultation at our studio or schedule a call with our lead designers.'
+
   return (
     <div className="bg-warmcream text-charcoal min-h-screen py-32 px-6">
       <div className="max-w-6xl mx-auto">
 
         {/* Page Header */}
         <div className="text-center max-w-2xl mx-auto mb-20">
-          <span className="text-[10px] font-bold tracking-widest text-gold uppercase">Get In Touch</span>
-          <h1 className="text-4xl sm:text-5xl font-serif text-charcoal mt-3 mb-5 font-bold leading-tight">Start Your Design Journey</h1>
+          <span className="text-[10px] font-bold tracking-widest text-gold uppercase">{pageEyebrow}</span>
+          <h1 className="text-4xl sm:text-5xl font-serif text-charcoal mt-3 mb-5 font-bold leading-tight">{pageHeading}</h1>
           <p className="text-charcoal/60 text-xs sm:text-sm leading-relaxed">
-            Book a complimentary design consultation at our studio or schedule a call with our lead designers.
+            {pageSubtext}
           </p>
         </div>
 

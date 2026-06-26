@@ -11,7 +11,17 @@ import WhyChooseHayagriva from '../../components/WhyChooseHayagriva'
 import FAQ from '../../components/FAQ'
 import { portfolioFaqs } from '../../lib/faq-data'
 
-export default function Portfolio() {
+export default function Portfolio({ content = {} }) {
+  const heroSection = content['hero'] || {}
+  const ctaSection  = content['cta']  || {}
+
+  const pageTitle       = heroSection.title       || 'Our Projects'
+  const pageDescription = heroSection.description ||
+    'Explore a curated gallery of kitchen, bedroom, and living room transformations with rich imagery, smooth interactions, and immersive details.'
+  const ctaHeading      = ctaSection.title        || 'Ready to Design Your Haven?'
+  const ctaDescription  = ctaSection.description  ||
+    'Schedule a design session with our principal architects. We will discuss spatial blueprints, sample material palettes, and immediately compute customized site estimates.'
+
   const categories = ['All', 'Kitchen', 'Bedroom', 'Living Room']
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -83,7 +93,7 @@ export default function Portfolio() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-serif text-charcoal mt-4 mb-6 font-black leading-tight"
           >
-            Our Projects
+            {pageTitle}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -91,7 +101,7 @@ export default function Portfolio() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-charcoal/60 text-sm sm:text-base leading-relaxed max-w-xl mx-auto"
           >
-            Explore a curated gallery of kitchen, bedroom, and living room transformations with rich imagery, smooth interactions, and immersive details.
+            {pageDescription}
           </motion.p>
         </div>
 
@@ -203,10 +213,10 @@ export default function Portfolio() {
           <div className="relative z-10 space-y-6 max-w-2xl mx-auto">
             <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">Design Consultation</span>
             <h3 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black leading-tight text-white">
-              Ready to Design Your Haven?
+              {ctaHeading}
             </h3>
             <p className="text-beige-luxury/60 text-xs sm:text-sm leading-relaxed max-w-lg mx-auto">
-              Schedule a design session with our principal architects. We will discuss spatial blueprints, sample material palettes, and immediately compute customized site estimates.
+              {ctaDescription}
             </p>
             <div className="pt-4 flex justify-center gap-4 flex-wrap">
               <Link 
