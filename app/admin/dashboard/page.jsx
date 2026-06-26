@@ -36,7 +36,11 @@ import {
   EyeOff,
   Images,
   Link2,
-  Copy
+  Copy,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Star
 } from 'lucide-react'
 import { SEO_PAGES } from '../../../lib/seo-pages'
 import { SECTION_SCHEMAS, SECTION_TYPE_OPTIONS, defaultSectionData } from '../../../lib/section-schemas'
@@ -134,6 +138,7 @@ export default function AdminDashboard() {
   const [galleryLoading, setGalleryLoading] = useState(false)
   const [galleryUploading, setGalleryUploading] = useState(false)
   const [galleryUrlInput, setGalleryUrlInput] = useState('')
+  const [galleryDraggedIndex, setGalleryDraggedIndex] = useState(null)
 
   // Verify auth session on mount
   useEffect(() => {
@@ -397,7 +402,10 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/projects/${projectId}/images`)
       const data = await safeJson(res)
-      setGalleryImages(Array.isArray(data) ? data : [])
+      const list = Array.isArray(data) ? data : []
+      // Defensive: ensure stable display order even if the API ordering changes
+      list.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      setGalleryImages(list)
     } catch (err) {
       console.error('Failed to load gallery images:', err)
       setGalleryImages([])
@@ -406,34 +414,39 @@ export default function AdminDashboard() {
     }
   }
 
-  // Upload a new gallery image file to storage, then persist to DB
+  // Upload one or more gallery image files to storage, then persist to DB.
+  // Files keep their selection order; the API appends them after existing rows.
   const handleGalleryUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file || !selectedProject?.id) return
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0 || !selectedProject?.id) return
 
     setGalleryUploading(true)
     setErrorMsg('')
     try {
-      const { data, error } = await insforgeClient.storage.from('images').uploadAuto(file)
-      if (error) throw error
+      // Upload + persist every file sequentially so order is preserved.
+      const created = []
+      for (const file of files) {
+        const { data, error } = await insforgeClient.storage.from('images').uploadAuto(file)
+        if (error) throw error
 
-      const headers = await getHeaders()
-      const res = await fetch(`/api/admin/projects/${selectedProject.id}/images`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ image_url: data.url, image_key: data.key }),
-        credentials: 'include'
-      })
-      const result = await safeJson(res)
-      if (!res.ok) throw new Error(result.error || 'Failed to add gallery image')
-
-      setGalleryImages((prev) => [...prev, Array.isArray(result) ? result[0] : result])
+        const headers = await getHeaders()
+        const res = await fetch(`/api/admin/projects/${selectedProject.id}/images`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ image_url: data.url, image_key: data.key }),
+          credentials: 'include'
+        })
+        const result = await safeJson(res)
+        if (!res.ok) throw new Error(result.error || 'Failed to add gallery image')
+        created.push(Array.isArray(result) ? result[0] : result)
+      }
+      setGalleryImages((prev) => [...prev, ...created])
     } catch (err) {
       console.error('Gallery upload failed:', err)
       setErrorMsg('Gallery upload failed: ' + err.message)
     } finally {
       setGalleryUploading(false)
-      // Reset file input so the same file can be picked again
+      // Reset file input so the same file(s) can be picked again
       e.target.value = ''
     }
   }
@@ -485,6 +498,126 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Gallery delete failed:', err)
       setErrorMsg('Gallery delete failed: ' + err.message)
+    }
+  }
+
+  // Re-order gallery images (drag drop or move buttons), persisting sort_order
+  const handleGalleryReorder = async (nextList) => {
+    if (!selectedProject?.id) return
+    // Optimistically apply the new order to the UI
+    const renumbered = nextList.map((img, idx) => ({ ...img, sort_order: idx }))
+    setGalleryImages(renumbered)
+
+    try {
+      const headers = await getHeaders()
+      const res = await fetch(`/api/admin/projects/${selectedProject.id}/images`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          orders: renumbered.map((img) => ({ id: img.id, order: img.sort_order }))
+        }),
+        credentials: 'include'
+      })
+      const result = await safeJson(res)
+      if (!res.ok) throw new Error(result.error || 'Failed to save order')
+    } catch (err) {
+      console.error('Gallery reorder failed:', err)
+      setErrorMsg('Failed to save image order: ' + err.message)
+      fetchGalleryImages(selectedProject.id)
+    }
+  }
+
+  // Move a gallery image up or down in order
+  const handleGalleryMove = (index, direction) => {
+    const target = index + direction
+    if (target < 0 || target >= galleryImages.length) return
+    const next = [...galleryImages]
+    const tmp = next[index]
+    next[index] = next[target]
+    next[target] = tmp
+    handleGalleryReorder(next)
+  }
+
+  // Drag-and-drop reorder helpers
+  const handleGalleryDragStart = (index) => setGalleryDraggedIndex(index)
+  const handleGalleryDragOver = (e, index) => {
+    e.preventDefault()
+    if (galleryDraggedIndex === null || galleryDraggedIndex === index) return
+    const next = [...galleryImages]
+    const [removed] = next.splice(galleryDraggedIndex, 1)
+    next.splice(index, 0, removed)
+    setGalleryImages(next)
+    setGalleryDraggedIndex(index)
+  }
+  const handleGalleryDragEnd = () => {
+    if (galleryDraggedIndex !== null) {
+      handleGalleryReorder(galleryImages)
+    }
+    setGalleryDraggedIndex(null)
+  }
+
+  // Replace a gallery image's underlying file (keeps its order/position)
+  const handleGalleryReplace = async (imageId, e) => {
+    const file = e.target.files?.[0]
+    if (!file || !selectedProject?.id || !imageId) return
+    e.target.value = ''
+
+    setGalleryUploading(true)
+    setErrorMsg('')
+    try {
+      const { data, error } = await insforgeClient.storage.from('images').uploadAuto(file)
+      if (error) throw error
+
+      const headers = await getHeaders()
+      const res = await fetch(`/api/admin/projects/${selectedProject.id}/images`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ imageId, image_url: data.url, image_key: data.key }),
+        credentials: 'include'
+      })
+      const result = await safeJson(res)
+      if (!res.ok) throw new Error(result.error || 'Failed to replace image')
+
+      setGalleryImages((prev) =>
+        prev.map((img) =>
+          img.id === imageId
+            ? { ...img, image_url: data.url, image_key: data.key }
+            : img
+        )
+      )
+    } catch (err) {
+      console.error('Gallery replace failed:', err)
+      setErrorMsg('Image replace failed: ' + err.message)
+    } finally {
+      setGalleryUploading(false)
+    }
+  }
+
+  // Promote a gallery image to be the project cover (projects.image)
+  const handleGallerySetCover = async (imageId) => {
+    if (!imageId || !selectedProject?.id) return
+    setErrorMsg('')
+    try {
+      const headers = await getHeaders()
+      const res = await fetch(`/api/admin/projects/${selectedProject.id}/images`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ imageId, setCover: true }),
+        credentials: 'include'
+      })
+      const result = await safeJson(res)
+      if (!res.ok) throw new Error(result.error || 'Failed to set cover')
+
+      // Reflect the new cover in the form's showcase image field
+      setProjectFormData((prev) => ({
+        ...prev,
+        image: result.image,
+        image_key: result.image_key
+      }))
+      fetchDashboardData()
+    } catch (err) {
+      console.error('Set cover failed:', err)
+      setErrorMsg('Failed to set cover: ' + err.message)
     }
   }
 
@@ -2816,21 +2949,41 @@ export default function AdminDashboard() {
                     )}
                   </div>
 
-                  {/* Additional Project Pictures (gallery) — only when editing an existing project */}
+                  {/* Project gallery (carousel images) — only when editing an existing project.
+                      These images appear ONLY inside the project details image gallery/carousel. */}
                   {projectForm === 'edit' && selectedProject?.id && (
                     <div className="space-y-3.5 pt-1.5 border-t border-white/5 pt-5">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-beige-luxury/50 flex items-center gap-1.5">
                           <Images size={12} className="text-gold-metallic" />
-                          More Pictures ({galleryImages.length})
+                          Gallery Images ({galleryImages.length})
                         </label>
                         <span className="text-[9px] text-beige-luxury/40 uppercase tracking-wider">
-                          Shown in project gallery
+                          First slide is the cover. Drag to reorder.
                         </span>
                       </div>
 
-                      {/* Upload add row */}
-                      <div className="grid grid-cols-1 gap-4">
+                      {/* Cover preview — reflects the active projects.image */}
+                      {projectFormData.image && (
+                        <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gold-metallic/5 border border-gold-metallic/20">
+                          <img
+                            src={projectFormData.image}
+                            alt="Cover"
+                            className="h-12 w-12 rounded-lg object-cover border border-gold-metallic/30"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-gold-metallic block">
+                              Cover Image (Slide 1)
+                            </span>
+                            <span className="text-[9px] text-beige-luxury/40 truncate block">
+                              {projectFormData.image}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Upload add row — supports multiple files + URL paste */}
+                      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
                         <label className="h-12 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-metallic/30 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all duration-300">
                           {galleryUploading ? (
                             <Loader2 className="animate-spin text-gold-metallic" size={16} />
@@ -2838,48 +2991,134 @@ export default function AdminDashboard() {
                             <Plus size={16} className="text-gold-metallic" />
                           )}
                           <span className="font-bold text-beige-luxury uppercase tracking-wider text-[10px]">
-                            {galleryUploading ? 'Adding...' : 'Upload Picture'}
+                            {galleryUploading ? 'Adding...' : 'Upload Images (multi)'}
                           </span>
                           <input
                             type="file"
                             accept="image/*"
+                            multiple
                             disabled={galleryUploading}
                             onChange={handleGalleryUpload}
                             className="hidden"
                           />
                         </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={galleryUrlInput}
+                            disabled={galleryUploading}
+                            onChange={(e) => setGalleryUrlInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleGalleryUrlAdd()
+                              }
+                            }}
+                            placeholder="Paste image URL"
+                            className="flex-1 sm:w-44 px-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-gold-metallic text-beige-luxury placeholder-white/30 text-[11px] transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleGalleryUrlAdd}
+                            disabled={galleryUploading || !galleryUrlInput.trim()}
+                            className="px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-wider disabled:opacity-40 transition-all"
+                          >
+                            Add
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Gallery thumbnails */}
+                      {/* Gallery thumbnails — draggable to reorder */}
                       {galleryLoading ? (
                         <div className="flex items-center justify-center py-6 text-beige-luxury/40">
                           <Loader2 className="animate-spin" size={16} />
                         </div>
                       ) : galleryImages.length > 0 ? (
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                          {galleryImages.map((img) => (
+                          {galleryImages.map((img, idx) => (
                             <div
                               key={img.id}
-                              className="relative rounded-xl overflow-hidden h-24 border border-white/5 bg-white/5 group"
+                              draggable
+                              onDragStart={() => handleGalleryDragStart(idx)}
+                              onDragOver={(e) => handleGalleryDragOver(e, idx)}
+                              onDragEnd={handleGalleryDragEnd}
+                              onDrop={(e) => e.preventDefault()}
+                              className={`relative rounded-xl overflow-hidden h-28 border bg-white/5 group cursor-grab active:cursor-grabbing transition-all ${
+                                galleryDraggedIndex === idx
+                                  ? 'border-gold-metallic ring-2 ring-gold-metallic/40 opacity-60'
+                                  : 'border-white/10 hover:border-gold-metallic/40'
+                              }`}
                             >
+                              <span className="absolute top-1.5 left-1.5 z-10 h-5 w-5 rounded-full bg-black-luxury/70 border border-white/10 text-[9px] font-bold text-gold-metallic flex items-center justify-center tabular-nums">
+                                {idx + 1}
+                              </span>
                               <img
                                 src={img.image_url}
                                 alt={img.caption || 'Gallery image'}
-                                className="w-full h-full object-cover"
+                                draggable={false}
+                                className="w-full h-full object-cover pointer-events-none"
                               />
-                              <button
-                                type="button"
-                                onClick={() => handleGalleryDelete(img.id)}
-                                className="absolute top-1.5 right-1.5 p-1 bg-black-luxury/70 text-white rounded-full border border-white/10 opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all duration-300"
-                              >
-                                <X size={11} />
-                              </button>
+
+                              {/* Hover action bar */}
+                              <div className="absolute inset-0 bg-black-luxury/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-1.5">
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGalleryMove(idx, -1)}
+                                    disabled={idx === 0}
+                                    title="Move left"
+                                    className="p-1 bg-white/10 hover:bg-gold-metallic hover:text-black-luxury text-white rounded-md border border-white/10 disabled:opacity-20 disabled:hover:bg-white/10 disabled:hover:text-white transition-all"
+                                  >
+                                    <ChevronLeft size={13} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGalleryMove(idx, 1)}
+                                    disabled={idx === galleryImages.length - 1}
+                                    title="Move right"
+                                    className="p-1 bg-white/10 hover:bg-gold-metallic hover:text-black-luxury text-white rounded-md border border-white/10 disabled:opacity-20 disabled:hover:bg-white/10 disabled:hover:text-white transition-all"
+                                  >
+                                    <ChevronRight size={13} />
+                                  </button>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <label
+                                    title="Replace image"
+                                    className="p-1 bg-white/10 hover:bg-gold-metallic hover:text-black-luxury text-white rounded-md border border-white/10 cursor-pointer transition-all"
+                                  >
+                                    <RefreshCw size={13} />
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={(e) => handleGalleryReplace(img.id, e)}
+                                    />
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGallerySetCover(img.id)}
+                                    title="Set as cover"
+                                    className="p-1 bg-white/10 hover:bg-gold-metallic hover:text-black-luxury text-white rounded-md border border-white/10 transition-all"
+                                  >
+                                    <Star size={13} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGalleryDelete(img.id)}
+                                    title="Delete image"
+                                    className="p-1 bg-white/10 hover:bg-red-500 text-white rounded-md border border-white/10 transition-all"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
                       ) : (
                         <p className="text-[10px] text-beige-luxury/40 italic">
-                          No extra pictures yet. Add more photos of this project above.
+                          No gallery images yet. Add more photos above — they will appear in the
+                          project details carousel after the cover.
                         </p>
                       )}
                     </div>

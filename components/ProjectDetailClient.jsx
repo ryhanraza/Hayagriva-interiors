@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, MapPin, Layers, Calendar, DollarSign, Hammer, X } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ArrowLeft, MapPin, Layers, Calendar, DollarSign, Hammer } from 'lucide-react'
+import ProjectGallery from './ProjectGallery'
 
 export default function ProjectDetailClient({ project, gallery = [] }) {
-  const [lightbox, setLightbox] = useState(null)
   // Parse materials list if comma-separated
   const materialsList = project.materials
     ? project.materials.split(',').map((m) => m.trim())
@@ -17,6 +16,14 @@ export default function ProjectDetailClient({ project, gallery = [] }) {
     project.image && typeof project.image === 'string' && project.image.trim()
       ? project.image
       : null
+
+  // Build the full image list for the gallery:
+  //   cover (projects.image) first, then gallery rows in admin-defined order.
+  // The gallery component de-dupes, so the cover never appears twice.
+  const galleryImages = [
+    ...(validImage ? [{ url: validImage, alt: project.title, id: 'cover' }] : []),
+    ...(Array.isArray(gallery) ? gallery : [])
+  ]
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -62,36 +69,21 @@ export default function ProjectDetailClient({ project, gallery = [] }) {
           animate="show"
           className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-start"
         >
-          {/* Visual Showcase Card */}
+          {/* Visual Showcase Card — premium image gallery */}
           <motion.div
             variants={itemVariants}
-            className="overflow-hidden rounded-[2.2rem] border border-charcoal/5 shadow-lg bg-white group relative"
+            className="overflow-hidden rounded-[2.2rem] border border-charcoal/5 shadow-lg bg-white relative"
           >
             <div className="relative h-[420px] sm:h-[560px] overflow-hidden bg-charcoal/5">
-              {/* Subtle image bottom overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10 pointer-events-none" />
-              
-              {validImage ? (
-                <img
-                  src={validImage}
-                  alt={project.title}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-charcoal/10 text-charcoal/30">
-                  <span className="text-[10px] uppercase tracking-widest font-bold">No Image</span>
-                </div>
-              )}
-            </div>
+              {/* Subtle image bottom overlay for legibility of pills */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent z-[15] pointer-events-none" />
 
-            {/* Quick Stats Image Overlay */}
-            <div className="absolute bottom-6 left-6 right-6 z-20 flex flex-wrap gap-2.5">
-              <span className="backdrop-blur-md bg-white/85 border border-charcoal/5 rounded-full px-4 py-2 text-[10px] uppercase tracking-wider text-gold-dark font-bold shadow-sm">
-                {project.category}
-              </span>
-              <span className="backdrop-blur-md bg-white/85 border border-charcoal/5 rounded-full px-4 py-2 text-[10px] uppercase tracking-wider text-charcoal font-bold shadow-sm flex items-center gap-1.5">
-                <MapPin size={12} className="text-gold" /> {project.location}
-              </span>
+              <ProjectGallery
+                images={galleryImages}
+                title={project.title}
+                category={project.category}
+                location={project.location}
+              />
             </div>
           </motion.div>
 
@@ -181,94 +173,7 @@ export default function ProjectDetailClient({ project, gallery = [] }) {
             </div>
           </motion.div>
         </motion.div>
-
-        {/* Project Gallery — additional pictures */}
-        {gallery.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="mt-24 sm:mt-32"
-          >
-            <div className="text-center mb-12 space-y-3">
-              <span className="text-[10px] font-bold tracking-widest text-gold uppercase block">
-                Visual Tour
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-serif text-charcoal font-bold leading-tight">
-                Project Gallery
-              </h2>
-              <p className="text-charcoal/60 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
-                More angles and details from this {project.category.toLowerCase()} project.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-              {gallery.map((img, idx) => (
-                <motion.button
-                  key={img.id}
-                  type="button"
-                  onClick={() => setLightbox(img)}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.05 }}
-                  className={`relative overflow-hidden rounded-2xl border border-charcoal/5 bg-charcoal/5 group cursor-zoom-in ${
-                    idx === 0 ? 'col-span-2 sm:col-span-2 row-span-2 aspect-[2/1] sm:aspect-square' : 'aspect-square'
-                  }`}
-                >
-                  <img
-                    src={img.image_url || '/images/placeholder-1.svg'}
-                    alt={img.caption || `${project.title} ${idx + 1}`}
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
       </div>
-
-      {/* Lightbox */}
-      <AnimatePresence>
-        {lightbox && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setLightbox(null)}
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 sm:p-10 cursor-zoom-out"
-          >
-            <button
-              type="button"
-              onClick={() => setLightbox(null)}
-              className="absolute top-5 right-5 p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full border border-white/20 transition-colors"
-            >
-              <X size={18} />
-            </button>
-            <motion.div
-              initial={{ scale: 0.92, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-5xl aspect-[4/3] rounded-2xl overflow-hidden"
-            >
-              <img
-                src={lightbox.image_url || '/images/placeholder-1.svg'}
-                alt={lightbox.caption || project.title}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              {lightbox.caption && (
-                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
-                  <p className="text-white text-sm">{lightbox.caption}</p>
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
