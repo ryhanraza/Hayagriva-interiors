@@ -1,10 +1,11 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import FAQ from '../../../components/FAQ'
 import {
   ArrowLeft,
   ArrowRight,
@@ -147,16 +148,37 @@ export default function ServiceDetailPage() {
   // Key on slug so React fully remounts this subtree on every service change.
   // Without this, Next.js reuses the component between /services/a -> /services/b,
   // so Framer Motion animations never replay and the page looks frozen.
-  return <ServiceDetailView key={params.slug} service={service} />
+  return <ServiceDetailView key={params.slug} service={service} serviceSlug={params.slug} />
 }
 
-function ServiceDetailView({ service }) {
+function ServiceDetailView({ service, serviceSlug }) {
   const Icon = service.icon
+  const [serviceFaqs, setServiceFaqs] = useState([])
 
   // Reset scroll to top whenever a new service mounts
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadFaqs() {
+      try {
+        const res = await fetch(`/api/services/${encodeURIComponent(serviceSlug)}/faqs`)
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled && Array.isArray(data)) {
+          setServiceFaqs(data.map((faq) => ({ question: faq.question, answer: faq.answer })))
+        }
+      } catch {
+        // Non-critical — page renders without FAQs if fetch fails
+      }
+    }
+
+    loadFaqs()
+    return () => { cancelled = true }
+  }, [serviceSlug])
 
   return (
     <div className="bg-warmcream text-charcoal min-h-screen overflow-x-hidden">
@@ -279,6 +301,15 @@ function ServiceDetailView({ service }) {
           </Link>
         </div>
       </section>
+
+      {/* Service FAQs — only shown when admin has added active FAQs */}
+      {serviceFaqs.length > 0 && (
+        <FAQ
+          faqs={serviceFaqs}
+          variant="cream"
+          heading={`${service.title} FAQs`}
+        />
+      )}
 
       {/* Bottom CTA */}
       <section className="py-24 px-6 max-w-7xl mx-auto">

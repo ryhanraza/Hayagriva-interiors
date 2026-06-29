@@ -40,12 +40,14 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
-  Star
+  Star,
+  HelpCircle
 } from 'lucide-react'
 import { SEO_PAGES } from '../../../lib/seo-pages'
 import { SECTION_SCHEMAS, SECTION_TYPE_OPTIONS, defaultSectionData } from '../../../lib/section-schemas'
 import SectionFormBuilder from '../../../components/admin/SectionFormBuilder'
 import MediaLibrary from '../../../components/admin/MediaLibrary'
+import ServiceFaqsManager from '../../../components/admin/ServiceFaqsManager'
 
 /**
  * Safely parse a fetch Response as JSON.
@@ -1414,6 +1416,17 @@ export default function AdminDashboard() {
               <Layers size={16} />
               <span>Page Content</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('service-faqs')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all duration-300 shrink-0 ${activeTab === 'service-faqs'
+                ? 'bg-gold-metallic text-black-luxury shadow-lg shadow-gold-metallic/10'
+                : 'text-beige-luxury/60 hover:text-beige-luxury hover:bg-white/5'
+                }`}
+            >
+              <HelpCircle size={16} />
+              <span>Service FAQs</span>
+            </button>
           </nav>
         </div>
 
@@ -2679,6 +2692,19 @@ export default function AdminDashboard() {
                 className="space-y-8"
               >
                 <MediaLibrary />
+              </motion.div>
+            )}
+
+            {/* Service FAQs Workspace */}
+            {activeTab === 'service-faqs' && (
+              <motion.div
+                key="service-faqs"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="space-y-8"
+              >
+                <ServiceFaqsManager />
               </motion.div>
             )}
           </AnimatePresence>
