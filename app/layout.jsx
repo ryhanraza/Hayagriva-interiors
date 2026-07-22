@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FloatingWhatsApp from '../components/FloatingWhatsApp'
 import ConsultationModal from '../components/ConsultationModal'
+import SeoInternalLinker from '../components/SeoInternalLinker'
 
 export const metadata = {
   metadataBase: new URL('https://hayagrivainteriors.com'),
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
         <Footer />
         <FloatingWhatsApp />
         <ConsultationModal />
+        <SeoInternalLinker />
       </body>
     </html>
   )

@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react'
 import { insforgeClient } from '../../lib/insforge-client'
+
+// Helper: generate a safe unique storage path for an uploaded file
+function generateStoragePath(file) {
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  return `${Date.now()}-${safe}`
+}
 import {
   Upload,
   Trash2,
@@ -59,7 +65,10 @@ export default function MediaLibrary() {
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        const { data, error } = await insforgeClient.storage.from('images').uploadAuto(file)
+        const storagePath = generateStoragePath(file)
+        const { data, error } = await insforgeClient.storage
+          .from('images')
+          .upload(storagePath, file, { cacheControl: '3600', upsert: false })
         if (error) throw error
       }
       await fetchImages()

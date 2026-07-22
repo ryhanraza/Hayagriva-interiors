@@ -45,7 +45,9 @@ export async function POST(request) {
         const { data, error } = await insforgeClient.auth.signUp({
             email,
             password,
-            redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/admin/dashboard`
+            options: {
+                emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/admin/dashboard`
+            }
         });
 
         if (error) {

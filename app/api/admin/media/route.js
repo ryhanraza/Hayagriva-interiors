@@ -1,4 +1,5 @@
 import { verifyAdmin } from '../../../../lib/admin-auth'
+import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +10,14 @@ function json(data, status = 200) {
   })
 }
 
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vzafcqropxwujuppnkli.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
+
 // GET /api/admin/media — Retrieve list of all uploaded files in 'images' bucket
 export async function GET(request) {
   const auth = await verifyAdmin(request)
@@ -17,23 +26,28 @@ export async function GET(request) {
   }
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_INSFORGE_URL || 'https://376pmed2.ap-southeast.insforge.app'
-    const serviceRoleKey = process.env.INSFORGE_SERVICE_ROLE_KEY || 'ik_fd319524a5e7923aca5217024108b3d7'
-
-    const res = await fetch(`${baseUrl}/api/storage/buckets/images/objects?limit=500`, {
-      headers: {
-        'Authorization': `Bearer ${serviceRoleKey}`,
-        'Content-Type': 'application/json'
-      }
+    const supabase = getAdminClient()
+    const { data, error } = await supabase.storage.from('images').list('', {
+      limit: 500,
+      sortBy: { column: 'created_at', order: 'desc' }
     })
 
-    if (!res.ok) {
-      const errText = await res.text()
-      return json({ error: `Backend returned status ${res.status}: ${errText}` }, res.status)
+    if (error) {
+      return json({ error: error.message }, 500)
     }
 
-    const result = await res.json()
-    return json(result.data || [])
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vzafcqropxwujuppnkli.supabase.co'
+
+    const files = (data || [])
+      .filter((f) => f.name && !f.id?.endsWith('/'))
+      .map((f) => ({
+        key: f.name,
+        url: `${supabaseUrl}/storage/v1/object/public/images/${f.name}`,
+        size: f.metadata?.size || 0,
+        uploadedAt: f.created_at || null,
+      }))
+
+    return json(files)
   } catch (err) {
     return json({ error: err.message }, 500)
   }
@@ -54,23 +68,11 @@ export async function DELETE(request) {
       return json({ error: 'Missing object key' }, 400)
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_INSFORGE_URL || 'https://376pmed2.ap-southeast.insforge.app'
-    const serviceRoleKey = process.env.INSFORGE_SERVICE_ROLE_KEY || 'ik_fd319524a5e7923aca5217024108b3d7'
+    const supabase = getAdminClient()
+    const { error } = await supabase.storage.from('images').remove([key])
 
-    const cleanKey = key.startsWith('/') ? key.substring(1) : key
-    const url = `${baseUrl}/api/storage/buckets/images/objects/${cleanKey}`
-
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${serviceRoleKey}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!res.ok) {
-      const errText = await res.text()
-      return json({ error: `Backend returned status ${res.status}: ${errText}` }, res.status)
+    if (error) {
+      return json({ error: error.message }, 500)
     }
 
     return json({ success: true })
