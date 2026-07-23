@@ -18,7 +18,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-12 md:gap-8 mb-16">
 
         {/* Branding Column */}
-        <div className="md:col-span-4 space-y-4">
+        <div className="md:col-span-5 space-y-4">
           <Link href="/" className="block">
             <Image
               src="/images/logo-footer.png"
@@ -35,6 +35,23 @@ export default function Footer() {
           <p className="text-theme-grey text-xs sm:text-sm leading-relaxed max-w-sm">
             Bespoke interior design studio crafting timeless residential and commercial spaces. Fusing traditional craftsmanship with contemporary aesthetics.
           </p>
+          <div className="flex flex-row gap-3 pt-2">
+            <a href="https://www.instagram.com/hayagriva_interiors?utm_source=qr&igsh=MWxydW0yd3Y4aXAzZQ==" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Instagram">
+              <Instagram size={16} />
+            </a>
+            <a href="https://www.facebook.com/share/18cmqePWNS/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Facebook">
+              <Facebook size={16} />
+            </a>
+            <a href="https://youtube.com/@hayagrivainteriors" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="YouTube">
+              <Youtube size={16} />
+            </a>
+            <a href="https://wa.me/919573178887" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="WhatsApp">
+              <WhatsAppIcon size={16} />
+            </a>
+            <a href="https://www.linkedin.com/company/hayagriva-interiors/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="LinkedIn">
+              <Linkedin size={16} />
+            </a>
+          </div>
         </div>
 
         {/* Quick Links Column */}
@@ -83,28 +100,6 @@ export default function Footer() {
               <a href="mailto:interiorsbyhayagriva@gmail.com" className="hover:text-theme-gold transition-colors">interiorsbyhayagriva@gmail.com</a>
             </li>
           </ul>
-        </div>
-
-        {/* Follow Us Column */}
-        <div className="md:col-span-1 space-y-4">
-          <h4 className="text-xs font-bold uppercase tracking-widest text-theme-gold">Follow Us</h4>
-          <div className="flex flex-col gap-3 pt-1">
-            <a href="https://www.instagram.com/hayagriva_interiors?utm_source=qr&igsh=MWxydW0yd3Y4aXAzZQ==" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Instagram">
-              <Instagram size={16} />
-            </a>
-            <a href="https://www.facebook.com/share/18cmqePWNS/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="Facebook">
-              <Facebook size={16} />
-            </a>
-            <a href="https://youtube.com/@hayagrivainteriors" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="YouTube">
-              <Youtube size={16} />
-            </a>
-            <a href="https://wa.me/919573178887" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="WhatsApp">
-              <WhatsAppIcon size={16} />
-            </a>
-            <a href="https://www.linkedin.com/company/hayagriva-interiors/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded bg-white/5 border border-white/10 hover:border-theme-gold hover:text-theme-gold flex items-center justify-center transition-all duration-300" aria-label="LinkedIn">
-              <Linkedin size={16} />
-            </a>
-          </div>
         </div>
 
       </div>
