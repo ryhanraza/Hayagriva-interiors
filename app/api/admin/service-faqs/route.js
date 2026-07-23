@@ -18,7 +18,7 @@ export async function GET(request) {
 
   try {
     const { searchParams } = new URL(request.url)
-    const serviceId = searchParams.get('service_id')
+    const serviceId = searchParams.get('service_id') || searchParams.get('serviceId')
 
     if (!serviceId) {
       return json({ error: 'service_id is required.' }, 400)
