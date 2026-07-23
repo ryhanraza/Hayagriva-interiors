@@ -89,7 +89,7 @@ export default function ProjectGrid({ filter = 'All' }) {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto"
       >
         <AnimatePresence mode="popLayout">
-          {displayedProjects.map((project) => {
+          {displayedProjects.map((project, index) => {
             const aspectClass = 'aspect-[1/1]'
             const imageSrc =
               project.image && typeof project.image === 'string' && project.image.trim()
@@ -113,7 +113,7 @@ export default function ProjectGrid({ filter = 'All' }) {
                         src={imageSrc}
                         alt={project.title}
                         fill
-                        loading="lazy"
+                        priority={index < 3}
                         className="object-cover transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
